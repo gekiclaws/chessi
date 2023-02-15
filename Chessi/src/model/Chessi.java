@@ -9,6 +9,11 @@ public class Chessi {
 		X.test();
 	}
 	
+	public Chessi() {
+		GTE = new GuessTheEval();
+		Analysis = new AnalysisBoard();
+	}
+	
 	public void test() {
 		
 	}
