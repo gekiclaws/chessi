@@ -4,26 +4,40 @@ package view;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.*;
 
 import javax.swing.*;
 
+import model.Bishop;
 import model.Chessi;
+import model.King;
+import model.Knight;
+import model.Move;
+import model.Pawn;
+import model.Piece;
+import model.Queen;
+import model.Rook;
+import model.Square;
+//import model.board;
 
 public class Interface {
     JPanel cards; //a panel that uses CardLayout
-    final static String BUTTONPANEL = "Card with JButtons";
-    final static String TEXTPANEL = "Card with JTextField";
     private static JFrame frame;
     private Chessi app;
+    private Square currentSquare;
+    private Color currentColor;
+    private Map<String, JTextField> squares = new HashMap<>();
+    
     
     public void addComponentToPane(Container pane) {
-    	
     	app = new Chessi();
-        
-        //Create the panel that contains the "cards".
+    	
+        //Create the panel that contains the windows
         cards = new JPanel(new CardLayout());
         
+        // Main window
         JPanel mainWindow = new JPanel();
         cards.add(mainWindow, "mainWindow");
         mainWindow.setLayout(null);
@@ -52,6 +66,8 @@ public class Interface {
         gteButton.setBounds(398, 104, 300, 250);
         mainWindow.add(gteButton);
         
+        // Analysis window
+        
         JPanel analysisWindow = new JPanel();
         cards.add(analysisWindow, "analysisWindow");
         GridBagLayout gbl_analysisWindow = new GridBagLayout();
@@ -60,6 +76,8 @@ public class Interface {
         gbl_analysisWindow.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
         gbl_analysisWindow.rowWeights = new double[]{1.0, Double.MIN_VALUE};
         analysisWindow.setLayout(gbl_analysisWindow); 
+        
+        // Draw the chess board
         
         JPanel chessboard = new JPanel();
         GridBagConstraints gbc_chessboard = new GridBagConstraints();
@@ -76,6 +94,21 @@ public class Interface {
         gbl_chessboard.rowWeights = new double[]{0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, Double.MIN_VALUE};
         chessboard.setLayout(gbl_chessboard); 
         
+        FocusListener myFocusListener = new FocusListener() {
+        	public void focusGained(FocusEvent e) {
+                Component component = e.getComponent();
+                if (component instanceof JTextField) {
+                    GridBagLayout layout = (GridBagLayout) component.getParent().getLayout();
+                    GridBagConstraints constraints = layout.getConstraints(component);
+                    update(e, new Square(constraints.gridx, constraints.gridy));
+                }
+                chessboard.requestFocus(); // give focus to a different component to lose focus from the square
+        	}
+            public void focusLost(FocusEvent e) {
+            	
+            }
+    	};
+       
         JTextField a1 = new JTextField();
         a1.setBackground(new Color(210, 180, 140));
         a1.setEditable(false);
@@ -89,14 +122,7 @@ public class Interface {
         gbc_a1.gridx = 0;
         gbc_a1.gridy = 7;
         chessboard.add(a1, gbc_a1);
-        a1.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		a1.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		a1.setText("");
-        	}
-        });
+        a1.addFocusListener(myFocusListener);
         
         JTextField a3 = new JTextField();
         a3.setBackground(new Color(210, 180, 140));
@@ -110,14 +136,7 @@ public class Interface {
         gbc_a3.gridx = 0;
         gbc_a3.gridy = 5;
         chessboard.add(a3, gbc_a3);
-        a3.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        a3.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        a3.setText("");
-        }
-        });
+        a3.addFocusListener(myFocusListener);
         
         JTextField a5 = new JTextField();
         a5.setBackground(new Color(210, 180, 140));
@@ -131,14 +150,7 @@ public class Interface {
         gbc_a5.gridx = 0;
         gbc_a5.gridy = 3;
         chessboard.add(a5, gbc_a5);
-        a5.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		a5.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		a5.setText("");
-        	}
-        });
+        a5.addFocusListener(myFocusListener);
         
         JTextField a7 = new JTextField();
         a7.setBackground(new Color(210, 180, 140));
@@ -153,14 +165,7 @@ public class Interface {
         gbc_a7.gridx = 0;
         gbc_a7.gridy = 1;
         chessboard.add(a7, gbc_a7);
-        a7.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		a7.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		a7.setText("");
-        	}
-        });
+        a7.addFocusListener(myFocusListener);
         
         JTextField c1 = new JTextField();
         c1.setBackground(new Color(210, 180, 140));
@@ -175,14 +180,7 @@ public class Interface {
         gbc_c1.gridx = 2;
         gbc_c1.gridy = 7;
         chessboard.add(c1, gbc_c1);
-        c1.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        c1.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        c1.setText("");
-        }
-        });
+        c1.addFocusListener(myFocusListener);
 
         JTextField e1 = new JTextField();
         e1.setBackground(new Color(210, 180, 140));
@@ -197,14 +195,7 @@ public class Interface {
         gbc_e1.gridx = 4;
         gbc_e1.gridy = 7;
         chessboard.add(e1, gbc_e1);
-        e1.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        e1.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        e1.setText("");
-        }
-        });
+        e1.addFocusListener(myFocusListener);
 
         JTextField g1 = new JTextField();
         g1.setBackground(new Color(210, 180, 140));
@@ -219,14 +210,7 @@ public class Interface {
         gbc_g1.gridx = 6;
         gbc_g1.gridy = 7;
         chessboard.add(g1, gbc_g1);
-        g1.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        g1.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        g1.setText("");
-        }
-        });
+        g1.addFocusListener(myFocusListener);
 
         JTextField c3 = new JTextField();
         c3.setBackground(new Color(210, 180, 140));
@@ -241,15 +225,8 @@ public class Interface {
         gbc_c3.gridx = 2;
         gbc_c3.gridy = 5;
         chessboard.add(c3, gbc_c3);
-        c3.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		c3.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		c3.setText("");
-        	}
-        });
-
+        c3.addFocusListener(myFocusListener);
+        
         JTextField e3 = new JTextField();
         e3.setBackground(new Color(210, 180, 140));
         e3.setEditable(false);
@@ -263,14 +240,7 @@ public class Interface {
         gbc_e3.gridx = 4;
         gbc_e3.gridy = 5;
         chessboard.add(e3, gbc_e3);
-        e3.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		e3.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		e3.setText("");
-        	}
-        });
+        e3.addFocusListener(myFocusListener);
 
         JTextField g3 = new JTextField();
         g3.setBackground(new Color(210, 180, 140));
@@ -285,14 +255,7 @@ public class Interface {
         gbc_g3.gridx = 6;
         gbc_g3.gridy = 5;
         chessboard.add(g3, gbc_g3);
-        g3.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		g3.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		g3.setText("");
-        	}
-        });
+        g3.addFocusListener(myFocusListener);
         
         JTextField c5 = new JTextField();
         c5.setBackground(new Color(210, 180, 140));
@@ -307,14 +270,7 @@ public class Interface {
         gbc_c5.gridx = 2;
         gbc_c5.gridy = 3;
         chessboard.add(c5, gbc_c5);
-        c5.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		c5.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		c5.setText("");
-        	}
-        });
+        c5.addFocusListener(myFocusListener);
 
         JTextField e5 = new JTextField();
         e5.setBackground(new Color(210, 180, 140));
@@ -329,14 +285,7 @@ public class Interface {
         gbc_e5.gridx = 4;
         gbc_e5.gridy = 3;
         chessboard.add(e5, gbc_e5);
-        e5.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		e5.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		e5.setText("");
-        	}
-        });
+        e5.addFocusListener(myFocusListener);
 
         JTextField g5 = new JTextField();
         g5.setBackground(new Color(210, 180, 140));
@@ -351,14 +300,7 @@ public class Interface {
         gbc_g5.gridx = 6;
         gbc_g5.gridy = 3;
         chessboard.add(g5, gbc_g5);
-        g5.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		g5.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		g5.setText("");
-        	}
-        });
+        g5.addFocusListener(myFocusListener);
 
         JTextField c7 = new JTextField();
         c7.setBackground(new Color(210, 180, 140));
@@ -373,14 +315,7 @@ public class Interface {
         gbc_c7.gridx = 2;
         gbc_c7.gridy = 1;
         chessboard.add(c7, gbc_c7);
-        c7.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		c7.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		c7.setText("");
-        	}
-        });
+        c7.addFocusListener(myFocusListener);
 
         JTextField e7 = new JTextField();
         e7.setBackground(new Color(210, 180, 140));
@@ -395,14 +330,7 @@ public class Interface {
         gbc_e7.gridx = 4;
         gbc_e7.gridy = 1;
         chessboard.add(e7, gbc_e7);
-        e7.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		e7.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		e7.setText("");
-        	}
-        });
+        e7.addFocusListener(myFocusListener);
 
         JTextField g7 = new JTextField();
         g7.setBackground(new Color(210, 180, 140));
@@ -417,14 +345,7 @@ public class Interface {
         gbc_g7.gridx = 6;
         gbc_g7.gridy = 1;
         chessboard.add(g7, gbc_g7);
-        g7.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		g7.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		g7.setText("");
-        	}
-        });
+        g7.addFocusListener(myFocusListener);
         
         JTextField b2 = new JTextField();
         b2.setBackground(new Color(210, 180, 140));
@@ -439,14 +360,7 @@ public class Interface {
         gbc_b2.gridx = 1;
         gbc_b2.gridy = 6;
         chessboard.add(b2, gbc_b2);
-        b2.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		b2.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		b2.setText("");
-        	}
-        });
+        b2.addFocusListener(myFocusListener);
         
         JTextField d2 = new JTextField();
         d2.setBackground(new Color(210, 180, 140));
@@ -461,14 +375,7 @@ public class Interface {
         gbc_d2.gridx = 3;
         gbc_d2.gridy = 6;
         chessboard.add(d2, gbc_d2);
-        d2.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d2.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d2.setText("");
-        }
-        });
+        d2.addFocusListener(myFocusListener);
 
         JTextField f2 = new JTextField();
         f2.setBackground(new Color(210, 180, 140));
@@ -483,14 +390,7 @@ public class Interface {
         gbc_f2.gridx = 5;
         gbc_f2.gridy = 6;
         chessboard.add(f2, gbc_f2);
-        f2.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f2.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f2.setText("");
-        }
-        });
+        f2.addFocusListener(myFocusListener);
 
         JTextField h2 = new JTextField();
         h2.setBackground(new Color(210, 180, 140));
@@ -505,14 +405,7 @@ public class Interface {
         gbc_h2.gridx = 7;
         gbc_h2.gridy = 6;
         chessboard.add(h2, gbc_h2);
-        h2.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        h2.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        h2.setText("");
-        }
-        });
+        h2.addFocusListener(myFocusListener);
         
         JTextField b4 = new JTextField();
         b4.setBackground(new Color(210, 180, 140));
@@ -527,14 +420,7 @@ public class Interface {
         gbc_b4.gridx = 1;
         gbc_b4.gridy = 4;
         chessboard.add(b4, gbc_b4);
-        b4.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		b4.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		b4.setText("");
-        	}
-        });
+        b4.addFocusListener(myFocusListener);
         
         JTextField d4 = new JTextField();
         d4.setBackground(new Color(210, 180, 140));
@@ -549,14 +435,7 @@ public class Interface {
         gbc_d4.gridx = 3;
         gbc_d4.gridy = 4;
         chessboard.add(d4, gbc_d4);
-        d4.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d4.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d4.setText("");
-        }
-        });
+        d4.addFocusListener(myFocusListener);
 
         JTextField f4 = new JTextField();
         f4.setBackground(new Color(210, 180, 140));
@@ -571,14 +450,7 @@ public class Interface {
         gbc_f4.gridx = 5;
         gbc_f4.gridy = 4;
         chessboard.add(f4, gbc_f4);
-        f4.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f4.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f4.setText("");
-        }
-        });
+        f4.addFocusListener(myFocusListener);
 
         JTextField h4 = new JTextField();
         h4.setBackground(new Color(210, 180, 140));
@@ -593,14 +465,7 @@ public class Interface {
         gbc_h4.gridx = 7;
         gbc_h4.gridy = 4;
         chessboard.add(h4, gbc_h4);
-        h4.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        h4.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        h4.setText("");
-        }
-        });
+        h4.addFocusListener(myFocusListener);
         
         JTextField b6 = new JTextField();
         b6.setBackground(new Color(210, 180, 140));
@@ -615,14 +480,7 @@ public class Interface {
         gbc_b6.gridx = 1;
         gbc_b6.gridy = 2;
         chessboard.add(b6, gbc_b6);
-        b6.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		b6.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		b6.setText("");
-        	}
-        });
+        b6.addFocusListener(myFocusListener);
 
         JTextField d6 = new JTextField();
         d6.setBackground(new Color(210, 180, 140));
@@ -637,14 +495,7 @@ public class Interface {
         gbc_d6.gridx = 3;
         gbc_d6.gridy = 2;
         chessboard.add(d6, gbc_d6);
-        d6.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d6.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d6.setText("");
-        }
-        });
+        d6.addFocusListener(myFocusListener);
 
         JTextField f6 = new JTextField();
         f6.setBackground(new Color(210, 180, 140));
@@ -659,14 +510,7 @@ public class Interface {
         gbc_f6.gridx = 5;
         gbc_f6.gridy = 2;
         chessboard.add(f6, gbc_f6);
-        f6.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f6.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f6.setText("");
-        }
-        });
+        f6.addFocusListener(myFocusListener);
 
         JTextField h6 = new JTextField();
         h6.setBackground(new Color(210, 180, 140));
@@ -681,14 +525,7 @@ public class Interface {
         gbc_h6.gridx = 7;
         gbc_h6.gridy = 2;
         chessboard.add(h6, gbc_h6);
-        h6.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        h6.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        h6.setText("");
-        }
-        });
+        h6.addFocusListener(myFocusListener);
         
         JTextField b8 = new JTextField();
         b8.setBackground(new Color(210, 180, 140));
@@ -703,14 +540,7 @@ public class Interface {
         gbc_b8.gridx = 1;
         gbc_b8.gridy = 0;
         chessboard.add(b8, gbc_b8);
-        b8.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		b8.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		b8.setText("");
-        	}
-        });
+        b8.addFocusListener(myFocusListener);
         
         JTextField d8 = new JTextField();
         d8.setBackground(new Color(210, 180, 140));
@@ -725,14 +555,7 @@ public class Interface {
         gbc_d8.gridx = 3;
         gbc_d8.gridy = 0;
         chessboard.add(d8, gbc_d8);
-        d8.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d8.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d8.setText("");
-        }
-        });
+        d8.addFocusListener(myFocusListener);
 
         JTextField f8 = new JTextField();
         f8.setBackground(new Color(210, 180, 140));
@@ -747,14 +570,7 @@ public class Interface {
         gbc_f8.gridx = 5;
         gbc_f8.gridy = 0;
         chessboard.add(f8, gbc_f8);
-        f8.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f8.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f8.setText("");
-        }
-        });
+        f8.addFocusListener(myFocusListener);
 
         JTextField h8 = new JTextField();
         h8.setBackground(new Color(210, 180, 140));
@@ -769,18 +585,7 @@ public class Interface {
         gbc_h8.gridx = 7;
         gbc_h8.gridy = 0;
         chessboard.add(h8, gbc_h8);
-        h8.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        h8.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        h8.setText("");
-        }
-        });
-        
-        
-        
-        
+        h8.addFocusListener(myFocusListener);
         
         JTextField c4 = new JTextField();
         c4.setBackground(new Color(255, 255, 255));
@@ -795,14 +600,7 @@ public class Interface {
         gbc_c4.gridx = 2;
         gbc_c4.gridy = 4;
         chessboard.add(c4, gbc_c4);
-        c4.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        c4.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        c4.setText("");
-        }
-        });
+        c4.addFocusListener(myFocusListener);
         
         JTextField e4 = new JTextField();
         e4.setBackground(new Color(255, 255, 255));
@@ -817,14 +615,7 @@ public class Interface {
         gbc_e4.gridx = 4;
         gbc_e4.gridy = 4;
         chessboard.add(e4, gbc_e4);
-        e4.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        e4.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        e4.setText("");
-        }
-        });
+        e4.addFocusListener(myFocusListener);
         
         JTextField g4 = new JTextField();
         g4.setBackground(new Color(255, 255, 255));
@@ -839,14 +630,7 @@ public class Interface {
         gbc_g4.gridx = 6;
         gbc_g4.gridy = 4;
         chessboard.add(g4, gbc_g4);
-        g4.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        g4.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        g4.setText("");
-        }
-        });
+        g4.addFocusListener(myFocusListener);
         
         
         JTextField b1 = new JTextField();
@@ -862,14 +646,7 @@ public class Interface {
         gbc_b1.gridx = 1;
         gbc_b1.gridy = 7;
         chessboard.add(b1, gbc_b1);
-        b1.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		b1.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		b1.setText("");
-        	}
-        });
+        b1.addFocusListener(myFocusListener);
         
         JTextField d1 = new JTextField();
         d1.setBackground(new Color(255, 255, 255));
@@ -884,14 +661,7 @@ public class Interface {
         gbc_d1.gridx = 3;
         gbc_d1.gridy = 7;
         chessboard.add(d1, gbc_d1);
-        d1.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d1.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d1.setText("");
-        }
-        });
+        d1.addFocusListener(myFocusListener);
 
         JTextField f1 = new JTextField();
         f1.setBackground(new Color(255, 255, 255));
@@ -906,14 +676,7 @@ public class Interface {
         gbc_f1.gridx = 5;
         gbc_f1.gridy = 7;
         chessboard.add(f1, gbc_f1);
-        f1.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f1.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f1.setText("");
-        }
-        });
+        f1.addFocusListener(myFocusListener);
 
         JTextField h1 = new JTextField();
         h1.setBackground(new Color(255, 255, 255));
@@ -928,14 +691,7 @@ public class Interface {
         gbc_h1.gridx = 7;
         gbc_h1.gridy = 7;
         chessboard.add(h1, gbc_h1);
-        h1.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        h1.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        h1.setText("");
-        }
-        });
+        h1.addFocusListener(myFocusListener);
         
         JTextField b3 = new JTextField();
         b3.setBackground(new Color(255, 255, 255));
@@ -950,14 +706,7 @@ public class Interface {
         gbc_b3.gridx = 1;
         gbc_b3.gridy = 5;
         chessboard.add(b3, gbc_b3);
-        b3.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        b3.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        b3.setText("");
-        }
-        });
+        b3.addFocusListener(myFocusListener);
         
         JTextField d3 = new JTextField();
         d3.setBackground(new Color(255, 255, 255));
@@ -972,14 +721,7 @@ public class Interface {
         gbc_d3.gridx = 3;
         gbc_d3.gridy = 5;
         chessboard.add(d3, gbc_d3);
-        d3.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d3.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d3.setText("");
-        }
-        });
+        d3.addFocusListener(myFocusListener);
 
         JTextField f3 = new JTextField();
         f3.setBackground(new Color(255, 255, 255));
@@ -994,14 +736,7 @@ public class Interface {
         gbc_f3.gridx = 5;
         gbc_f3.gridy = 5;
         chessboard.add(f3, gbc_f3);
-        f3.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f3.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f3.setText("");
-        }
-        });
+        f3.addFocusListener(myFocusListener);
 
         JTextField h3 = new JTextField();
         h3.setBackground(new Color(255, 255, 255));
@@ -1016,14 +751,7 @@ public class Interface {
         gbc_h3.gridx = 7;
         gbc_h3.gridy = 5;
         chessboard.add(h3, gbc_h3);
-        h3.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        h3.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        h3.setText("");
-        }
-        });
+        h3.addFocusListener(myFocusListener);
         
         JTextField a2 = new JTextField();
         a2.setBackground(new Color(255, 255, 255));
@@ -1038,14 +766,7 @@ public class Interface {
         gbc_a2.gridx = 0;
         gbc_a2.gridy = 6;
         chessboard.add(a2, gbc_a2);
-        a2.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		a2.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		a2.setText("");
-        	}
-        });
+        a2.addFocusListener(myFocusListener);
         
         JTextField a4 = new JTextField();
         a4.setBackground(new Color(255, 255, 255));
@@ -1060,14 +781,7 @@ public class Interface {
         gbc_a4.gridx = 0;
         gbc_a4.gridy = 4;
         chessboard.add(a4, gbc_a4);
-        a4.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		a4.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		a4.setText("");
-        	}
-        });
+        a4.addFocusListener(myFocusListener);
         
         JTextField a6 = new JTextField();
         a6.setBackground(new Color(255, 255, 255));
@@ -1082,14 +796,7 @@ public class Interface {
         gbc_a6.gridx = 0;
         gbc_a6.gridy = 2;
         chessboard.add(a6, gbc_a6);
-        a6.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		a6.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		a6.setText("");
-        	}
-        });
+        a6.addFocusListener(myFocusListener);
         
         JTextField a8 = new JTextField();
         a8.setBackground(new Color(255, 255, 255));
@@ -1104,14 +811,7 @@ public class Interface {
         gbc_a8.gridx = 0;
         gbc_a8.gridy = 0;
         chessboard.add(a8, gbc_a8);
-        a8.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		a8.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		a8.setText("");
-        	}
-        });
+        a8.addFocusListener(myFocusListener);
         
         JTextField c2 = new JTextField();
         c2.setBackground(new Color(255, 255, 255));
@@ -1126,14 +826,7 @@ public class Interface {
         gbc_c2.gridx = 2;
         gbc_c2.gridy = 6;
         chessboard.add(c2, gbc_c2);
-        c2.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        c2.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        c2.setText("");
-        }
-        });
+        c2.addFocusListener(myFocusListener);
         
         JTextField e2 = new JTextField();
         e2.setBackground(new Color(255, 255, 255));
@@ -1148,16 +841,8 @@ public class Interface {
         gbc_e2.gridx = 4;
         gbc_e2.gridy = 6;
         chessboard.add(e2, gbc_e2);
-        e2.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		e2.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		e2.setText("");
-        	}
-        });
+        e2.addFocusListener(myFocusListener);
         
-
         JTextField g2 = new JTextField();
         g2.setBackground(new Color(255, 255, 255));
         g2.setText("♙");
@@ -1171,14 +856,7 @@ public class Interface {
         gbc_g2.gridx = 6;
         gbc_g2.gridy = 6;
         chessboard.add(g2, gbc_g2);
-        g2.addFocusListener(new FocusListener() {
-        	public void focusGained(FocusEvent e) {
-        		g2.setText("O");
-        	}
-        	public void focusLost(FocusEvent e) {
-        		g2.setText("");
-        	}
-        });
+        g2.addFocusListener(myFocusListener);
         
         JTextField c6 = new JTextField();
         c6.setBackground(new Color(255, 255, 255));
@@ -1193,14 +871,7 @@ public class Interface {
         gbc_c6.gridx = 2;
         gbc_c6.gridy = 2;
         chessboard.add(c6, gbc_c6);
-        c6.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        c6.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        c6.setText("");
-        }
-        });
+        c6.addFocusListener(myFocusListener);
 
         JTextField e6 = new JTextField();
         e6.setBackground(new Color(255, 255, 255));
@@ -1215,14 +886,7 @@ public class Interface {
         gbc_e6.gridx = 4;
         gbc_e6.gridy = 2;
         chessboard.add(e6, gbc_e6);
-        e6.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        e6.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        e6.setText("");
-        }
-        });
+        e6.addFocusListener(myFocusListener);
 
         JTextField g6 = new JTextField();
         g6.setBackground(new Color(255, 255, 255));
@@ -1237,14 +901,7 @@ public class Interface {
         gbc_g6.gridx = 6;
         gbc_g6.gridy = 2;
         chessboard.add(g6, gbc_g6);
-        g6.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        g6.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        g6.setText("");
-        }
-        });
+        g6.addFocusListener(myFocusListener);
 
         JTextField b5 = new JTextField();
         b5.setBackground(new Color(255, 255, 255));
@@ -1259,14 +916,7 @@ public class Interface {
         gbc_b5.gridx = 1;
         gbc_b5.gridy = 3;
         chessboard.add(b5, gbc_b5);
-        b5.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        b5.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        b5.setText("");
-        }
-        });
+        b5.addFocusListener(myFocusListener);
         
         JTextField d5 = new JTextField();
         d5.setBackground(new Color(255, 255, 255));
@@ -1278,17 +928,10 @@ public class Interface {
         GridBagConstraints gbc_d5 = new GridBagConstraints();
         gbc_d5.insets = new Insets(0, 0, 0, 0);
         gbc_d5.fill = GridBagConstraints.BOTH;
-        gbc_d5.gridx = 3; // change gridx value
+        gbc_d5.gridx = 3;
         gbc_d5.gridy = 3;
         chessboard.add(d5, gbc_d5);
-        d5.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d5.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d5.setText("");
-        }
-        });
+        d5.addFocusListener(myFocusListener);
         
         JTextField f5 = new JTextField();
         f5.setBackground(new Color(255, 255, 255));
@@ -1303,14 +946,7 @@ public class Interface {
         gbc_f5.gridx = 5; // change gridx value
         gbc_f5.gridy = 3;
         chessboard.add(f5, gbc_f5);
-        f5.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f5.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f5.setText("");
-        }
-        });
+        f5.addFocusListener(myFocusListener);
         
         JTextField h5 = new JTextField();
         h5.setBackground(new Color(255, 255, 255));
@@ -1325,14 +961,7 @@ public class Interface {
         gbc_h5.gridx = 7; // change gridx value
         gbc_h5.gridy = 3;
         chessboard.add(h5, gbc_h5);
-        h5.addFocusListener(new FocusListener() {
-            public void focusGained(FocusEvent e) {
-                h5.setText("O");
-                }
-                public void focusLost(FocusEvent e) {
-                h5.setText("");
-                }
-                });
+        h5.addFocusListener(myFocusListener);
         
         JTextField b7 = new JTextField();
         b7.setBackground(new Color(255, 255, 255));
@@ -1347,14 +976,7 @@ public class Interface {
         gbc_b7.gridx = 1;
         gbc_b7.gridy = 1;
         chessboard.add(b7, gbc_b7);
-        b7.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        b7.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        b7.setText("");
-        }
-        });
+        b7.addFocusListener(myFocusListener);
 
         JTextField d7 = new JTextField();
         d7.setBackground(new Color(255, 255, 255));
@@ -1369,14 +991,7 @@ public class Interface {
         gbc_d7.gridx = 3;
         gbc_d7.gridy = 1;
         chessboard.add(d7, gbc_d7);
-        d7.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        d7.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        d7.setText("");
-        }
-        });
+        d7.addFocusListener(myFocusListener);
         
         JTextField f7 = new JTextField();
         f7.setBackground(new Color(255, 255, 255));
@@ -1391,14 +1006,7 @@ public class Interface {
         gbc_f7.gridx = 5;
         gbc_f7.gridy = 1;
         chessboard.add(f7, gbc_f7);
-        f7.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        f7.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        f7.setText("");
-        }
-        });
+        f7.addFocusListener(myFocusListener);
         
         JTextField h7 = new JTextField();
         h7.setBackground(new Color(255, 255, 255));
@@ -1413,14 +1021,7 @@ public class Interface {
         gbc_h7.gridx = 7;
         gbc_h7.gridy = 1;
         chessboard.add(h7, gbc_h7);
-        h7.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        h7.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        h7.setText("");
-        }
-        });
+        h7.addFocusListener(myFocusListener);
         
         JTextField c8 = new JTextField();
         c8.setBackground(new Color(255, 255, 255));
@@ -1435,14 +1036,7 @@ public class Interface {
         gbc_c8.gridx = 2;
         gbc_c8.gridy = 0;
         chessboard.add(c8, gbc_c8);
-        c8.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        c8.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        c8.setText("");
-        }
-        });
+        c8.addFocusListener(myFocusListener);
 
         JTextField e8 = new JTextField();
         e8.setBackground(new Color(255, 255, 255));
@@ -1457,14 +1051,7 @@ public class Interface {
         gbc_e8.gridx = 4;
         gbc_e8.gridy = 0;
         chessboard.add(e8, gbc_e8);
-        e8.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        e8.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        e8.setText("");
-        }
-        });
+        e8.addFocusListener(myFocusListener);
 
         JTextField g8 = new JTextField();
         g8.setBackground(new Color(255, 255, 255));
@@ -1479,18 +1066,81 @@ public class Interface {
         gbc_g8.gridx = 6;
         gbc_g8.gridy = 0;
         chessboard.add(g8, gbc_g8);
-        g8.addFocusListener(new FocusListener() {
-        public void focusGained(FocusEvent e) {
-        g8.setText("O");
-        }
-        public void focusLost(FocusEvent e) {
-        g8.setText("");
-        }
-        });
+        g8.addFocusListener(myFocusListener);
         
-        Map<String, JTextField> squares = new HashMap<>();
-//        squares.put("a1", a1);
-//        squares.get("a1").setText("hi");
+        // Use string to reference squares
+        
+        squares.put("a1", a1);
+        squares.put("a2", a2);
+        squares.put("a3", a3);
+        squares.put("a4", a4);
+        squares.put("a5", a5);
+        squares.put("a6", a6);
+        squares.put("a7", a7);
+        squares.put("a8", a8);
+
+        squares.put("b1", b1);
+        squares.put("b2", b2);
+        squares.put("b3", b3);
+        squares.put("b4", b4);
+        squares.put("b5", b5);
+        squares.put("b6", b6);
+        squares.put("b7", b7);
+        squares.put("b8", b8);
+
+        squares.put("c1", c1);
+        squares.put("c2", c2);
+        squares.put("c3", c3);
+        squares.put("c4", c4);
+        squares.put("c5", c5);
+        squares.put("c6", c6);
+        squares.put("c7", c7);
+        squares.put("c8", c8);
+
+        squares.put("d1", d1);
+        squares.put("d2", d2);
+        squares.put("d3", d3);
+        squares.put("d4", d4);
+        squares.put("d5", d5);
+        squares.put("d6", d6);
+        squares.put("d7", d7);
+        squares.put("d8", d8);
+
+        squares.put("e1", e1);
+        squares.put("e2", e2);
+        squares.put("e3", e3);
+        squares.put("e4", e4);
+        squares.put("e5", e5);
+        squares.put("e6", e6);
+        squares.put("e7", e7);
+        squares.put("e8", e8);
+
+        squares.put("f1", f1);
+        squares.put("f2", f2);
+        squares.put("f3", f3);
+        squares.put("f4", f4);
+        squares.put("f5", f5);
+        squares.put("f6", f6);
+        squares.put("f7", f7);
+        squares.put("f8", f8);
+
+        squares.put("g1", g1);
+        squares.put("g2", g2);
+        squares.put("g3", g3);
+        squares.put("g4", g4);
+        squares.put("g5", g5);
+        squares.put("g6", g6);
+        squares.put("g7", g7);
+        squares.put("g8", g8);
+
+        squares.put("h1", h1);
+        squares.put("h2", h2);
+        squares.put("h3", h3);
+        squares.put("h4", h4);
+        squares.put("h5", h5);
+        squares.put("h6", h6);
+        squares.put("h7", h7);
+        squares.put("h8", h8);
         
         JPanel sidebar = new JPanel(new CardLayout());
         GridBagConstraints gbc_sidebar = new GridBagConstraints();
@@ -1551,11 +1201,159 @@ public class Interface {
         
         pane.add(cards, BorderLayout.CENTER);
         
+        // Back end link
         
+    	app.getGTE().loadNewPosition(4);
+    	Piece[][] board = app.getGTE().getTheBoard().getBoard();
+//    	app.getGTE().getTheBoard().showBoard();
         
-        
-      
+    	for (int i = 0; i < board.length; i++) {
+        	for (int k = 0; k<board[0].length; k++) {
+        		String type = "";
+        		try {
+        			type = board[i][k].getClass().getSimpleName();
+        		} catch (NullPointerException ne) {}
+        		
+        		Square square = new Square(k, i);
+				
+        		switch (type) {
+        			case "Pawn":
+        				if (board[i][k].getColor().equals("white")) {
+        					squares.get(square.getName()).setText("♙");
+        				} else {
+        					squares.get(square.getName()).setText("♟︎");
+        				}
+        				break;
+        			case "Rook":
+        				if (board[i][k].getColor().equals("white")) {
+        					squares.get(square.getName()).setText("♖");
+        				} else {
+        					squares.get(square.getName()).setText("♜︎");
+        				}
+        				break;
+        			case "Knight":
+        				if (board[i][k].getColor().equals("white")) {
+        					squares.get(square.getName()).setText("♘");
+        				} else {
+        					squares.get(square.getName()).setText("♞︎");
+        				}
+        				break;
+        			case "Bishop":
+        				if (board[i][k].getColor().equals("white")) {
+        					squares.get(square.getName()).setText("♗");
+        				} else {
+        					squares.get(square.getName()).setText("♝︎");
+        				}
+        				break;
+        			case "Queen":
+        				if (board[i][k].getColor().equals("white")) {
+        					squares.get(square.getName()).setText("♕");
+        				} else {
+        					squares.get(square.getName()).setText("♛︎");
+        				}
+        				break;
+        			case "King":
+        				if (board[i][k].getColor().equals("white")) {
+        					squares.get(square.getName()).setText("♔");
+        				} else {
+        					squares.get(square.getName()).setText("♚");
+        				}
+        				break;
+        			default:
+        				squares.get(square.getName()).setText("");
+        		}
+        	}
+        }
+    	
+    	
+    		
     }
+  
+    
+    public void update(FocusEvent e, Square s) {
+    	Piece[][] board = app.getGTE().getTheBoard().copyBoard();
+    	System.out.println(s.getName());
+    	
+    	if (currentSquare == null && board[s.getY()][s.getX()] != null) {
+//    		JTextField textField = (JTextField) e.getSource();
+//    		currentColor = textField.getBackground();
+//        	textField.setBackground(new Color(0, 255, 128));
+        	currentSquare = s;
+    	} else if (currentSquare != null) {
+    		
+//    		squares.get(currentSquare.getName()).setBackground(currentColor);
+    		boolean pass = app.getGTE().getTheBoard().makeMove(currentSquare, s);
+    		System.out.println(pass);
+    		if (pass) {
+    			squares.get(s.getName()).setText(squares.get(currentSquare.getName()).getText());
+    			squares.get(currentSquare.getName()).setText("");
+    			
+    			
+    			if (board[currentSquare.getY()][currentSquare.getX()] instanceof Pawn) {				
+    				Pawn pawn = (Pawn) board[currentSquare.getY()][currentSquare.getX()];
+    				
+    				// remove extra pawn if en passant
+    				if (pawn.canBeCapturedEnPassant(board, pawn.getColor(), currentSquare, s)) {
+    					squares.get(new Square(s.getX(), currentSquare.getY()).getName()).setText("");
+    				}
+    				
+    				// promote pawn if it reaches the end
+    				if (pawn.checkForPromotion(s) && !pawn.isPromoted()) {
+    					board = app.getGTE().getTheBoard().copyBoard();
+    					pawn = (Pawn) board[s.getY()][s.getX()];
+    					String type = pawn.getPromotedTo().getClass().getSimpleName();
+    					switch (type) {
+	    				    case "Rook":
+	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♖" : "♜");
+	    				        break;
+	    				    case "Knight":
+	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♘" : "♞");
+	    				        break;
+	    				    case "Bishop":
+	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♗" : "♝");
+	    				        break;
+	    				    case "Queen":
+	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♕" : "♛");
+	    				        break;
+	    				}
+		          				
+            	      }
+    					
+    	            }
+    			
+    			
+    			// move rook if castling
+    			if (board[currentSquare.getY()][currentSquare.getX()] instanceof King) {
+    			    if(Math.abs(s.getX() - currentSquare.getX()) == 2) {
+	    				if (s.getX() > currentSquare.getX()) {
+	    					System.out.println("kingside");
+				            // Kingside castle
+				            squares.get(new Square(5, s.getY()).getName()).setText(squares.get(new Square(7, s.getY()).getName()).getText());
+				            squares.get(new Square(7, s.getY()).getName()).setText("");
+				        } else {
+				        	System.out.println("queenside");
+				            // Queenside castle
+				            squares.get(new Square(3, s.getY()).getName()).setText(squares.get(new Square(0, s.getY()).getName()).getText());
+				            squares.get(new Square(0, s.getY()).getName()).setText("");
+				        }
+    			    }
+    			}
+    			
+    			app.getGTE().setMoveGuess(new Move(currentSquare, s));		
+   
+    			currentSquare = null;
+    		} else {
+    			if (board[s.getY()][s.getX()] != null) {
+//    				currentColor = squares.get(s.getName()).getBackground();
+//    				squares.get(currentSquare.getName()).setBackground(new Color(0, 255, 128));
+    				currentSquare = s;
+            	} else {
+            		currentSquare = null;
+            	}
+    		}
+    	}
+    }
+    
     
     private static void createAndShowGUI() {
         //Create and set up the window.
@@ -1597,5 +1395,6 @@ public class Interface {
                 createAndShowGUI();
             }
         });
+        
     }
 }

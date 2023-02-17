@@ -9,7 +9,7 @@ public class Square {
 		this.x = x;
 		this.y = y;
 		
-		// https://stackoverflow.com/questions/10813154/how-do-i-convert-a-number-to-a-letter-in-java
+		// Adapted from https://stackoverflow.com/questions/10813154/how-do-i-convert-a-number-to-a-letter-in-java
 		name = x > -1 && x < 26 ? String.valueOf((char)(x + 97)) : null;
 		name = name + Integer.toString(8-y);
 	}
@@ -36,6 +36,10 @@ public class Square {
 
 	public void setY(int y) {
 		this.y = y;
+	}
+	
+	public String toString() {
+		return name + " " + x + " " + y;
 	}
 	
 }
