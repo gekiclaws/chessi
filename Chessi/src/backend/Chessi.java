@@ -1,12 +1,14 @@
 package backend;
 
+import java.sql.SQLException;
+
 import stockfish.UCI;
 
 public class Chessi {
 	private GuessTheEval GTE;
 	private AnalysisBoard Analysis;
 	
-	public static void main (String[] args) {
+	public static void main (String[] args){
 		Chessi X = new Chessi();
 	}
 	

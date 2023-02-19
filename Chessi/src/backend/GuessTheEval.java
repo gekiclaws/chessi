@@ -21,7 +21,7 @@ public class GuessTheEval {
 		GuessTheEval X = new GuessTheEval();
 	}
 	
-	public GuessTheEval() throws SQLException, ClassNotFoundException {
+	public GuessTheEval() {
 		theBoard = new ChessBoard();
 		database = new LinkedList<String>();
 		activePos = 2;
@@ -32,40 +32,40 @@ public class GuessTheEval {
 		
 //		Class.forName("com.mysql.cj.jdbc.Driver");
 //
-//		String url = "jdbc:mysql://localhost:3306/mydatabase";
-//		String user = "root";
-//		String password = "#GekiRed3663";
-//		Connection conn = DriverManager.getConnection(url, user, password);
-//
-//		Statement stmt = conn.createStatement();
-//		
-//		String sql = "UPDATE GTE SET attempted = ?, FEN = ?, explanation = ? WHERE id = ?";
-//		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//			pstmt.setInt(1, 0);
-//			pstmt.setString(2, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-//		    pstmt.setString(3, "hi");
-//		    pstmt.setInt(4, 0);
-//		    
-//		    int rowsUpdated = pstmt.executeUpdate();
-//		    if (rowsUpdated > 0) {
-//		        System.out.println("Row updated successfully.");
-//		    } else {
-//		        System.out.println("No row was updated.");
-//		    }
-//		} catch (SQLException e) {
-//		    System.out.println(e.getMessage());
-//		}
-//		
-//		ResultSet rs = stmt.executeQuery("SELECT * FROM GTE");
-//		while (rs.next()) {
-//		    int id = rs.getInt("id");
-//		    String FEN = rs.getString("FEN");
-//		    System.out.println(id);
-//		    System.out.println(FEN);
-//		}
-//		
-//		stmt.close();
-//		conn.close();
+////		String url = "jdbc:mysql://localhost:3306/mydatabase";
+////		String user = "root";
+////		String password = "#GekiRed3663";
+////		Connection conn = DriverManager.getConnection(url, user, password);
+////
+////		Statement stmt = conn.createStatement();
+////		
+////		String sql = "UPDATE GTE SET attempted = ?, FEN = ?, explanation = ? WHERE id = ?";
+////		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+////			pstmt.setInt(1, 0);
+////			pstmt.setString(2, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+////		    pstmt.setString(3, "hi");
+////		    pstmt.setInt(4, 0);
+////		    
+////		    int rowsUpdated = pstmt.executeUpdate();
+////		    if (rowsUpdated > 0) {
+////		        System.out.println("Row updated successfully.");
+////		    } else {
+////		        System.out.println("No row was updated.");
+////		    }
+////		} catch (SQLException e) {
+////		    System.out.println(e.getMessage());
+////		}
+////		
+////		ResultSet rs = stmt.executeQuery("SELECT * FROM GTE");
+////		while (rs.next()) {
+////		    int id = rs.getInt("id");
+////		    String FEN = rs.getString("FEN");
+////		    System.out.println(id);
+////		    System.out.println(FEN);
+////		}
+////		
+////		stmt.close();
+////		conn.close();
 		
 		// adapted from https://github.com/nomemory/neat-chess
 		

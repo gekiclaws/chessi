@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.util.*;
 
 import javax.swing.*;
@@ -33,7 +34,7 @@ public class Interface {
     
     private boolean analysisMode;
     
-    public void addComponentToPane(Container pane) {
+    public void addComponentToPane(Container pane){
     	app = new Chessi();
     	buttonClicked = false;
     	
