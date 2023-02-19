@@ -35,9 +35,6 @@ public class Pawn extends Piece {
 			int dx = s.getX() - position.getX();
 		    int dy = s.getY() - position.getY();
 		    
-		    System.out.println(dx);
-		    System.out.println(dy);
-		    
 		    if (color.equals("white")) {
 		        if (dy > 0) {
 		            return false; // white pawns can only move upwards
@@ -125,10 +122,6 @@ public class Pawn extends Piece {
 		}
 		
 	    int dx = captured.getX() - capturer.getX();
-	    
-	    System.out.println(Math.abs(dx));
-	    System.out.println(captured.getY());
-	    System.out.println(board[capturer.getY()][captured.getX()]);
 	    
 	    if (Math.abs(dx) == 1 && captured.getY() == enPassantRow && board[capturer.getY()][captured.getX()] instanceof Pawn
 	            && board[capturer.getY()][captured.getX()].getColor() != color

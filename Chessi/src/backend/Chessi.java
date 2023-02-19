@@ -1,5 +1,7 @@
 package backend;
 
+import stockfish.UCI;
+
 public class Chessi {
 	private GuessTheEval GTE;
 	private AnalysisBoard Analysis;
