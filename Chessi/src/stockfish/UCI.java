@@ -36,7 +36,7 @@ public class UCI {
     private static final String LC0 = "lc0";
     
     // path to stockfish executable
-    private static final String PATH = "/Users/gekiclaws/Documents/GitHub/guess-the-eval/Chessi/bin/stockfish/engine";
+    private static final String PATH = "/usr/local/bin";
 
     private static final long DEFAULT_TIMEOUT_VALUE = 60_000l;
 

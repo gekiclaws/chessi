@@ -30,11 +30,12 @@ public class Interface {
     private Color currentColor;
     private Map<String, JTextField> squares = new HashMap<>();
     private boolean buttonClicked;
-    private boolean pauseBoard;
+    private boolean pauseBoard_GTE;
+    private boolean pauseBoard_analysis;
     
     private boolean analysisMode;
     
-    public void addComponentToPane(Container pane){
+    public void addComponentToPane(Container pane) throws SQLException{
     	app = new Chessi();
     	buttonClicked = false;
     	
@@ -77,14 +78,16 @@ public class Interface {
         
         FocusListener myFocusListener = new FocusListener() {
         	public void focusGained(FocusEvent e) {
-        		if (!buttonClicked && !pauseBoard) {
-        			Component component = e.getComponent();
-                    if (component instanceof JTextField) {
-                        GridBagLayout layout = (GridBagLayout) component.getParent().getLayout();
-                        GridBagConstraints constraints = layout.getConstraints(component);
-                        update((JTextField) e.getSource(), new Square(constraints.gridx, constraints.gridy));
-                    }
-        			
+        		if (!buttonClicked) {
+        			// only allow board movement if board for section is not paused
+        			if (!pauseBoard_GTE && !analysisMode || !pauseBoard_analysis && analysisMode) {
+        				Component component = e.getComponent();
+                        if (component instanceof JTextField) {
+                            GridBagLayout layout = (GridBagLayout) component.getParent().getLayout();
+                            GridBagConstraints constraints = layout.getConstraints(component);
+                            update((JTextField) e.getSource(), new Square(constraints.gridx, constraints.gridy));
+                        }
+        			}
         		} else {
         			buttonClicked = false;
         		}
@@ -1137,12 +1140,36 @@ public class Interface {
         gameWindow.add(sidebarPane, gbc_sidebarPane);
         sidebarPane.setPreferredSize(gameWindow.getSize());
         
-        // Using a panel/layered pane approach to ensure that the back button is on top of everything and always visible
+     // Using a panel/layered pane approach to ensure that the back button is on top of everything and always visible
         JPanel backPanel = new JPanel();
+        sidebarPane.setLayer(backPanel, 1);
+        backPanel.setSize(300, 472);
+        backPanel.setLocation(0, 0);
+        backPanel.setOpaque(false);
+        sidebarPane.add(backPanel);
+        backPanel.setLayout(null);
+        
+        // Create back button
+//        Icon icon = new ImageIcon(new ImageIcon("/Users/gekiclaws/Documents/GitHub/guess-the-eval/Chessi/src/resources/back.png").getImage().getScaledInstance(50, 50, java.awt.Image.SCALE_SMOOTH));    
+        
+     // Create back button
+        Icon icon = new ImageIcon(new ImageIcon("/Users/gekiclaws/Documents/GitHub/guess-the-eval/Chessi/src/resources/back.png").getImage().getScaledInstance(50, 50, java.awt.Image.SCALE_SMOOTH));
+        JButton backBtn = new JButton(icon);
+        backBtn.setBorderPainted(false);
+        backBtn.setBackground(SystemColor.window); 
+        backBtn.setBounds(238, 410, 50, 50);
+        backPanel.add(backBtn);
+        
+        backBtn.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		CardLayout cl = (CardLayout)(cards.getLayout());
+                cl.show(cards, "mainWindow");
+        	}
+        });
         
         // The sidebar itself
         JPanel sidebar = new JPanel(new CardLayout());
-        sidebarPane.setLayer(sidebar, 2);
+        sidebarPane.setLayer(sidebar, 0);
         sidebar.setSize(300, 472);
         sidebarPane.add(sidebar);
         
@@ -1179,18 +1206,6 @@ public class Interface {
         JButton btnUndo = new JButton("Undo move");
         btnUndo.setFont(new Font("Chalkboard", Font.PLAIN, 18));
         btnUndo.setBounds(75, 255, 150, 53);
-        btnUndo.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		if(app.getGTE().getMoveGuess() != null) {
-        			app.getGTE().setMoveGuess(null);
-        			
-        			app.getGTE().resetBoard();
-                    
-                    Piece[][] board = app.getGTE().getTheBoard().getBoard();
-                    updateGUIBoard(board);
-        		}
-        	}
-        });
         main.add(btnUndo);
         
         JButton btnSubmit = new JButton("Submit");
@@ -1203,12 +1218,18 @@ public class Interface {
         lblToPlay.setBounds(30, 145, 258, 50);
         main.add(lblToPlay);
         
+//        JButton backBtn = new JButton(icon);
+//        backBtn.setBorderPainted(false);
+//        backBtn.setBackground(SystemColor.window); 
+//        backBtn.setBounds(238, 410, 50, 50);
+//        main.add(backBtn);
+        
         JPanel result = new JPanel();
         gte.add(result, "result");
         result.setLayout(null);
         
         JPanel engineLines = new JPanel();
-        engineLines.setBounds(30, 62, 240, 115);
+        engineLines.setBounds(30, 55, 240, 115);
         result.add(engineLines);
         GridBagLayout gbl_engineLines = new GridBagLayout();
         gbl_engineLines.columnWidths = new int[]{242, 0};
@@ -1245,24 +1266,46 @@ public class Interface {
         
         JButton btnContinue = new JButton("Continue");
         btnContinue.setFont(new Font("Chalkboard", Font.PLAIN, 18));
-        btnContinue.setBounds(30, 383, 150, 53);
+        btnContinue.setBounds(30, 407, 150, 53);
         result.add(btnContinue);
         
-        JLabel lblBestMove = new JLabel("The best move was");
+        JLabel lblBestMove = new JLabel("<html>The best move was<br>hi</html>");
         lblBestMove.setFont(new Font("Chalkboard", Font.PLAIN, 15));
-        lblBestMove.setBounds(30, 180, 240, 46);
+        lblBestMove.setBounds(30, 175, 240, 46);
         lblBestMove.setMaximumSize(new Dimension(Integer.MAX_VALUE, lblBestMove.getPreferredSize().height));
         result.add(lblBestMove);
         
-        JLabel lblCorrectEval = new JLabel("The correct eval was");
+        JLabel lblCorrectEval = new JLabel("<html>The correct eval was<br>hi</html>");
         lblCorrectEval.setFont(new Font("Chalkboard", Font.PLAIN, 15));
-        lblCorrectEval.setBounds(30, 240, 240, 46);
+        lblCorrectEval.setBounds(30, 230, 240, 46);
         result.add(lblCorrectEval);
         
-        JLabel lblExplanation = new JLabel("Some ideas are to");
+        JTextArea lblExplanation = new JTextArea("ideas");
+        lblExplanation.setBackground(SystemColor.window);
+        lblExplanation.setEditable(false);
+        lblExplanation.setBorder(null);
+        lblExplanation.setLineWrap(true);
+        lblExplanation.setWrapStyleWord(true);
         lblExplanation.setFont(new Font("Chalkboard", Font.PLAIN, 15));
-        lblExplanation.setBounds(30, 300, 240, 46);
-        result.add(lblExplanation);
+        lblExplanation.setBounds(30, 290, 240, 103);
+        result.add(lblExplanation, "lblExplanation");
+        
+        btnUndo.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		if(app.getGTE().getMoveGuess() != null) {
+        			app.getGTE().setMoveGuess(null);
+        			
+        			try {
+						app.getGTE().resetBoard();
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+                    
+                    Piece[][] board = app.getGTE().getTheBoard().getBoard();
+                    updateGUIBoard(board);
+        		}
+        	}
+        });
         
         btnSubmit.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
@@ -1286,21 +1329,30 @@ public class Interface {
         			JOptionPane.showMessageDialog(null, "Please make a move", "Make a move", JOptionPane.WARNING_MESSAGE);
         		} else {
         			if (pass) {
+        				String[] feedback = new String[6];
+        				
         				buttonClicked = true;
-        				pauseBoard = true;
+        				pauseBoard_GTE = true;
         				
         				// reset board before checking answers
-        				app.getGTE().resetBoard();
-            			String[] feedback = app.getGTE().checkAnswers(eval);
+        				try {
+        					app.getGTE().resetBoard();
+							feedback = app.getGTE().checkAnswers(eval);
+						} catch (SQLException e1) {
+							e1.printStackTrace();
+						}
             			
             			lblLine1.setText(feedback[0]);
             			lblLine2.setText(feedback[1]);
             			lblLine3.setText(feedback[2]);
             			lblBestMove.setText(feedback[3]);
             			lblCorrectEval.setText(feedback[4]);
+            			lblExplanation.setText(feedback[5]);
             			
             			CardLayout cl = (CardLayout)(gte.getLayout());
                         cl.show(gte, "result");
+                        
+                        System.out.println("bug");
                         
                         // reset UI and GTE stored data
                         updateGUIBoard(app.getGTE().getTheBoard().getBoard());
@@ -1313,67 +1365,155 @@ public class Interface {
         
         btnContinue.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
+        		boolean loaded = false;
+        		app.getGTE().updatePositionAcquired();
+        		
         		buttonClicked = true;
-        		pauseBoard = false;
+        		pauseBoard_GTE = false;
         		
         		CardLayout cl = (CardLayout)(gte.getLayout());
                 cl.show(gte, "main");
                 
-                app.getGTE().loadNewPosition();
-                Piece[][] board = app.getGTE().getTheBoard().getBoard();
-                updateGUIBoard(board);
+                try {
+					loaded = app.getGTE().loadNewPosition();
+				} catch (SQLException e1) {
+					System.out.println(e1);
+				}
                 
-                lblToPlay.setText((app.getGTE().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
+                if (loaded) {
+                	Piece[][] board = app.getGTE().getTheBoard().getBoard();
+                    updateGUIBoard(board);
+                    lblToPlay.setText((app.getGTE().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
+                } else {
+                	cl = (CardLayout)(cards.getLayout());
+                    cl.show(cards, "mainWindow");
+                    JOptionPane.showMessageDialog(null, "You've analyzed all the available positions! More positions to come.", "No positions left", JOptionPane.INFORMATION_MESSAGE);
+                }
                 
         	}
         });
+        
+//        backBtn_results.addActionListener(new ActionListener() {
+//        	public void actionPerformed(ActionEvent e) {
+//        		pauseBoard_GTE = false;
+//        		
+//        		CardLayout cl = (CardLayout)(cards.getLayout());
+//                cl.show(cards, "mainWindow");
+//                
+//        	}
+//        });
         
      // analysis sidebar
+       
         JPanel analysis = new JPanel();
         sidebar.add(analysis, "analysis");
+        analysis.setLayout(new CardLayout(0, 0));
         
         JPanel setup = new JPanel();
-        analysis.add(setup);
+        analysis.add(setup, "setup");
+        setup.setLayout(null);
         
-        GridBagLayout gbl_setup = new GridBagLayout();
-        gbl_setup.columnWidths = new int[]{300, 0}; 
-        gbl_setup.rowHeights = new int[]{359, 200, -29, 0};
-        gbl_setup.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-        gbl_setup.rowWeights = new double[]{0.0, 1.0, 1.0, Double.MIN_VALUE};
-        setup.setLayout(gbl_setup); 
+        JLabel lblSetUpPosition = new JLabel("Set up position");
+        lblSetUpPosition.setFont(new Font("Chalkboard", Font.PLAIN, 20));
+        lblSetUpPosition.setBounds(30, 12, 174, 46);
+        setup.add(lblSetUpPosition);
         
-        JPanel menu = new JPanel();
-        GridBagConstraints gbc_menu = new GridBagConstraints();
-        gbc_menu.fill = GridBagConstraints.BOTH;
-        gbc_menu.gridx = 0;
-        gbc_menu.gridy = 0;
-        setup.add(menu, gbc_menu);
+        JTextField FENTextField = new JTextField();
+        FENTextField.setBounds(30, 99, 240, 34);
+        setup.add(FENTextField);
+        FENTextField.setColumns(10);
         
-        JLabel lblNewLabel = new JLabel("analysis");
-        menu.add(lblNewLabel);
-        sidebarPane.setLayer(backPanel, 1);
-        backPanel.setSize(300, 472);
-        backPanel.setLocation(0, 0);
-        backPanel.setOpaque(false);
-        sidebarPane.add(backPanel);
-        backPanel.setLayout(null);
+        JButton btnLoad = new JButton("Load");
+        btnLoad.setFont(new Font("Chalkboard", Font.PLAIN, 18));
+        btnLoad.setBounds(30, 158, 240, 34);
+        setup.add(btnLoad);
         
-        // Create back button
-        Icon icon = new ImageIcon(new ImageIcon("/Users/gekiclaws/Documents/GitHub/guess-the-eval/Chessi/src/resources/back.png").getImage().getScaledInstance(50, 50, java.awt.Image.SCALE_SMOOTH));
-        JButton backBtn = new JButton(icon);
-        backBtn.setBorderPainted(false);
-        backBtn.setBackground(SystemColor.window); 
-        backBtn.addActionListener(new ActionListener() {
+        JLabel lblFEN = new JLabel("Paste a valid FEN below");
+        lblFEN.setFont(new Font("Chalkboard", Font.ITALIC, 18));
+        lblFEN.setBounds(30, 48, 240, 46);
+        setup.add(lblFEN);
+        
+        
+        JPanel analysisPage = new JPanel();
+        analysis.add(analysisPage, "analysisPage");
+        analysisPage.setLayout(null);
+        
+        JPanel engineLines_analysis = new JPanel();
+        engineLines_analysis.setBounds(30, 12, 240, 115);
+        analysisPage.add(engineLines_analysis);
+        GridBagLayout gbl_engineLines_analysis = new GridBagLayout();
+        gbl_engineLines_analysis.columnWidths = new int[]{242, 0};
+        gbl_engineLines_analysis.rowHeights = new int[] {35, 35, 35};
+        gbl_engineLines_analysis.columnWeights = new double[]{0.0, Double.MIN_VALUE};
+        gbl_engineLines_analysis.rowWeights = new double[]{0.0, 0.0, 0.0};
+        engineLines_analysis.setLayout(gbl_engineLines_analysis);
+        
+        JLabel lblLine1_analysis = new JLabel("New label");
+        GridBagConstraints gbc_lblLine1_analysis = new GridBagConstraints();
+        gbc_lblLine1_analysis.gridx = 0;
+        gbc_lblLine1_analysis.gridy = 0;
+        gbc_lblLine1_analysis.insets = new Insets(0, 0, 0, 0);
+        engineLines_analysis.add(lblLine1_analysis, gbc_lblLine1_analysis);
+        
+        JLabel lblLine2_analysis = new JLabel("New label");
+        GridBagConstraints gbc_lblLine2_analysis = new GridBagConstraints();
+        gbc_lblLine2_analysis.gridx = 0;
+        gbc_lblLine2_analysis.gridy = 1;
+        gbc_lblLine2_analysis.insets = new Insets(5, 0, 0, 0);
+        engineLines_analysis.add(lblLine2_analysis, gbc_lblLine2_analysis);
+        
+        JLabel lblLine3_analysis = new JLabel("New label");
+        GridBagConstraints gbc_lblLine3_analysis = new GridBagConstraints();
+        gbc_lblLine3_analysis.gridx = 0;
+        gbc_lblLine3_analysis.gridy = 2;
+        gbc_lblLine3_analysis.insets = new Insets(5, 0, 0, 0);
+        engineLines_analysis.add(lblLine3_analysis, gbc_lblLine3_analysis);
+        
+        JTextArea lblTimeline = new JTextArea();
+        lblTimeline.setLineWrap(true);
+        lblTimeline.setWrapStyleWord(true);
+        JScrollPane timelinePane = new JScrollPane(lblTimeline);
+        timelinePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); // To always show the vertical scrollbar
+        timelinePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // To never show the horizontal scrollbar
+        timelinePane.setBounds(30, 150, 240, 219);
+        
+        analysisPage.add(timelinePane);
+        
+        JPanel panel = new JPanel();
+        panel.setBounds(30, 392, 196, 55);
+        analysisPage.add(panel);
+        GridBagLayout gbl_panel = new GridBagLayout();
+        gbl_panel.columnWidths = new int[]{70, 0, 0, 0};
+        gbl_panel.rowHeights = new int[]{54, 0};
+        gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+        gbl_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+        panel.setLayout(gbl_panel);
+        
+        JButton btnNewButton = new JButton("New button");
+        GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
+        gbc_btnNewButton.insets = new Insets(0, 0, 0, 5);
+        gbc_btnNewButton.gridx = 0;
+        gbc_btnNewButton.gridy = 0;
+        panel.add(btnNewButton, gbc_btnNewButton);
+        
+        btnLoad.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		pauseBoard = false;
+        		buttonClicked = true;
+        		pauseBoard_analysis = false;
         		
-        		CardLayout cl = (CardLayout)(cards.getLayout());
-                cl.show(cards, "mainWindow");
+        		CardLayout cl = (CardLayout)(analysis.getLayout());
+                cl.show(analysis, "analysisPage");
+                
+//                if (app.getAnalysis().getCurrentGame().getTheBoard().loadBoard(FENTextField.getText()))
+                
+                Piece[][] board = app.getAnalysis().getCurrentGame().getTheBoard().getBoard();
+                updateGUIBoard(board);
+                
+                lblToPlay.setText((app.getAnalysis().getCurrentGame().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
                 
         	}
         });
-        backBtn.setBounds(238, 410, 50, 50);
-        backPanel.add(backBtn);
+        
         
         // Link the backend with the user interface
         
@@ -1407,20 +1547,33 @@ public class Interface {
         gteButton.setFont(new Font("Chalkboard", Font.BOLD, 40));
         gteButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
+        		boolean loaded = false;
+        		analysisMode = false;
+        		
         		CardLayout cl = (CardLayout)(cards.getLayout());
-                cl.show(cards, "gameWindow");
                 
-                cl = (CardLayout)(sidebar.getLayout());
-                cl.show(sidebar, "gte");
-                
-                analysisMode = false;
-                
-                app.getGTE().loadNewPosition(); // not always
-                Piece[][] board = app.getGTE().getTheBoard().getBoard();
-                updateGUIBoard(board);
-                
-                lblToPlay.setText((app.getGTE().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
-                
+                try {
+					loaded = app.getGTE().loadNewPosition();
+				} catch (SQLException e1) {
+					System.out.println(e1);
+				}
+        		
+                if (loaded) {
+                    cl.show(cards, "gameWindow");
+                    
+            		cl = (CardLayout)(sidebar.getLayout());
+                    cl.show(sidebar, "gte");
+                    
+                	Piece[][] board = app.getGTE().getTheBoard().getBoard();
+                    updateGUIBoard(board);
+                    
+                    if(app.getGTE().getMoveGuess() == null) {
+                    	lblToPlay.setText((app.getGTE().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
+                    }
+                } else {
+                	cl.show(cards, "mainWindow");
+                    JOptionPane.showMessageDialog(null, "You've analyzed all the available positions! More positions to come.", "No positions left", JOptionPane.INFORMATION_MESSAGE);
+                }
         	}
         });
         
@@ -1435,9 +1588,9 @@ public class Interface {
     	Piece[][] board = new Piece[8][8];
     	
     	if (analysisMode) {
-    		board = app.getAnalysis().getCurrentGame().getTheBoard().getBoard();
+    		board = app.getAnalysis().getCurrentGame().getTheBoard().copyBoard();
     	} else {
-    		board = app.getGTE().getTheBoard().getBoard();
+    		board = app.getGTE().getTheBoard().copyBoard();
     	}
     	
     	System.out.println(s.getName());
@@ -1460,7 +1613,7 @@ public class Interface {
     				}
     			}
     		} else {
-    			legal = app.getGTE().getTheBoard().makeMove(currentSquare, s);
+    			legal = app.getAnalysis().getCurrentGame().getTheBoard().makeMove(currentSquare, s);
     		}
     		
     		System.out.println(legal);
@@ -1476,6 +1629,7 @@ public class Interface {
     				
     				// remove extra pawn if en passant
     				if (pawn.canBeCapturedEnPassant(board, pawn.getColor(), currentSquare, s)) {
+    					System.out.println(new Square(s.getX(), currentSquare.getY()).getName());
     					squares.get(new Square(s.getX(), currentSquare.getY()).getName()).setText("");
     				}
     				
@@ -1584,7 +1738,7 @@ public class Interface {
     }
     
     
-    private static void createAndShowGUI() {
+    private static void createAndShowGUI() throws SQLException {
         //Create and set up the window.
         frame = new JFrame("Chessi");
         frame.setSize(750, 500);
@@ -1621,7 +1775,11 @@ public class Interface {
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI();
+                try {
+					createAndShowGUI();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
             }
         });
         

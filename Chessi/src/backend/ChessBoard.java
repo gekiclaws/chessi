@@ -211,10 +211,7 @@ public class ChessBoard {
 	}
 	
 	public boolean makeMove(Square s1, Square s2) {
-		System.out.println(s1.getName());
-		System.out.println(s2.getName());
-		
-	    if (checkValidMove(s1, s2)) {
+		if (checkValidMove(s1, s2)) {
 	        Piece piece = board[s1.getY()][s1.getX()];
 	        
 	        if (piece instanceof Rook) {
@@ -223,7 +220,6 @@ public class ChessBoard {
 	        		if (piece.getPosition().getName().equals("a1")) {
 	        			updateFEN(boardFEN.split(" ")[2].replace("Q", ""), 2);
 	        		} else if (piece.getPosition().getName().equals("h1")){
-	        			System.out.println("killer");
 	        			updateFEN(boardFEN.split(" ")[2].replace("K", ""), 2);
 	        		}
 	            	
@@ -324,7 +320,6 @@ public class ChessBoard {
 	        }
 	        
 	        updateFEN(toFEN(board), 0); // update board FEN after every move
-	        System.out.println(boardFEN);
 	        
 	        return true;
 	    } else {
@@ -339,58 +334,39 @@ public class ChessBoard {
 		makeMove(s1, s2);
 	}
 
-//	public boolean isValidChessPosition(Piece[][] board) {
-//	    // check that there is exactly one white and one black king
-//	    int numWhiteKings = 0;
-//	    int numBlackKings = 0;
-//	    for (int i = 0; i < board.length; i++) {
-//	        for (int j = 0; j < board[i].length; j++) {
-//	            if (board[i][j] != null) {
-//	                if (board[i][j].getType().equals("King")) {
-//	                    if (board[i][j].getColor().equals("white")) {
-//	                        numWhiteKings++;
-//	                    } else if (board[i][j].getColor().equals("black")) {
-//	                        numBlackKings++;
-//	                    }
-//	                }
-//	            }
-//	        }
-//	    }
-//	    if (numWhiteKings != 1 || numBlackKings != 1) {
-//	        return false;
-//	    }
-//
-//	    // check that there are no pawns on the first or last rank
-//	    for (int i = 0; i < board[0].length; i++) {
-//	        if (board[0][i] != null && board[0][i].getType().equals("Pawn")) {
-//	            return false;
-//	        }
-//	        if (board[7][i] != null && board[7][i].getType().equals("Pawn")) {
-//	            return false;
-//	        }
-//	    }
-//
-//	    // check that all pieces are on a valid square
-//	    for (int i = 0; i < board.length; i++) {
-//	        for (int j = 0; j < board[i].length; j++) {
-//	            if (board[i][j] != null) {
-//	                String color = board[i][j].getColor();
-//	                int row = board[i][j].getRow();
-//	                int col = board[i][j].getCol();
-//	                if (row < 0 || row > 7 || col < 0 || col > 7) {
-//	                    return false;
-//	                }
-//	                if ((row + col) % 2 == 0 && color.equals("black")) {
-//	                    return false;
-//	                }
-//	                if ((row + col) % 2 == 1 && color.equals("white")) {
-//	                    return false;
-//	                }
-//	            }
-//	        }
-//	    }
-//	    return true;
-//	}
+	public boolean isValidChessPosition() {
+	    // check that there is exactly one white and one black king
+	    int numWhiteKings = 0;
+	    int numBlackKings = 0;
+	    for (int i = 0; i < board.length; i++) {
+	        for (int j = 0; j < board[i].length; j++) {
+	            if (board[i][j] != null) {
+	                if (board[i][j].getClass().getSimpleName().equals("King")) {
+	                    if (board[i][j].getColor().equals("white")) {
+	                        numWhiteKings++;
+	                    } else if (board[i][j].getColor().equals("black")) {
+	                        numBlackKings++;
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    if (numWhiteKings != 1 || numBlackKings != 1) {
+	        return false;
+	    }
+
+	    // check that there are no pawns on the first or last rank
+	    for (int i = 0; i < board[0].length; i++) {
+	        if (board[0][i] != null && board[0][i].getClass().getSimpleName().equals("Pawn")) {
+	            return false;
+	        }
+	        if (board[7][i] != null && board[7][i].getClass().getSimpleName().equals("Pawn")) {
+	            return false;
+	        }
+	    }
+
+	    return true;
+	}
 	
 	public Piece[][] copyBoard(){
 		Piece[][] copyBoard = new Piece[8][8];
