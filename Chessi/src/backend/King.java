@@ -99,7 +99,7 @@ public class King extends Piece {
 	}
 	
 	public String toString() {
-		return (color + " king at "+position.getName());
+		return (color + " king at "+position.getName()+" "+moves);
 	}
 
 }

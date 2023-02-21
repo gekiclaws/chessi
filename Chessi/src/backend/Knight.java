@@ -33,6 +33,6 @@ public class Knight extends Piece {
     }
 	
 	public String toString() {
-		return (color + " knight at "+position.getName());
+		return (color + " knight at "+position.getName()+" "+moves);
 	}
 }

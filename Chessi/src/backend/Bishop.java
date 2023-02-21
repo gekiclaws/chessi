@@ -41,7 +41,7 @@ public class Bishop extends Piece {
 
 	
 	public String toString() {
-		return (color + " bishop at "+position.getName());
+		return (color + " bishop at "+position.getName()+" "+moves);
 	}
 
 }

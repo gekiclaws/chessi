@@ -69,7 +69,8 @@ public class Pawn extends Piece {
 		            if (p == null) {
 		                // check if this is an en passant capture
 		                if (board[position.getY()][s.getX()] != null && board[position.getY()][s.getX()] instanceof Pawn && board[position.getY()][s.getX()].getColor() != color) {
-		                    if (canBeCapturedEnPassant(board, color, position, s)) {
+		                    // only allow if en passant available AND last move was made by the pawn in question
+		                	if (canBeCapturedEnPassant(board, color, position, s) && board[position.getY()][s.getX()].isLastMoved()) {
 		                        return true;
 		                    }
 		                }

@@ -91,7 +91,7 @@ public class AnalysisBoard {
 		engine.setOption("MultiPV", "3");
 		engine.uciNewGame();
 		engine.positionFen(theBoard.getBoardFEN());
-		UCIResponse<Analysis> response = engine.analysis(18);
+		UCIResponse<Analysis> response = engine.analysis(20);
 		engine.close();
 		var analysis = response.getResultOrThrow();
 

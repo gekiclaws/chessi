@@ -48,6 +48,6 @@ public class Rook extends Piece {
 
 	
 	public String toString() {
-		return (color + " rook at "+position.getName());
+		return (color + " rook at "+position.getName()+" "+moves);
 	}
 }

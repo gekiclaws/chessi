@@ -103,7 +103,7 @@ public class GuessTheEval {
 		engine.setOption("MultiPV", "3");
 		engine.uciNewGame();
 		engine.positionFen((String) getPositions().get(activeId-1)[1]);
-		UCIResponse<Analysis> response = engine.analysis(20);
+		UCIResponse<Analysis> response = engine.analysis(30);
 		engine.close();
 		var analysis = response.getResultOrThrow();
 

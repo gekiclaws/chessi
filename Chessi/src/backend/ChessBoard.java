@@ -144,20 +144,24 @@ public class ChessBoard {
 		return fen.toString();
 	}
 	
-	public boolean checkValidMove(Square s1, Square s2) {
+	public boolean checkValidMove(Square s1, Square s2, boolean test) {
 		Piece piece = board[s1.getY()][s1.getX()];
 		
 		// Verify that the move is allowed for the piece being moved
 		if (piece instanceof King) {
 			King king = (King) piece;
 			if (!king.checkValidSquare(board, s2, boardFEN.split(" ")[2])) {
-		    	System.out.println("illegal move");
+				if (!test) {
+					JOptionPane.showMessageDialog(null, "Please make a legal move!", "Illegal move", JOptionPane.WARNING_MESSAGE);
+				}
 		    	return false;
 		    }
 		} else {
 			if (!piece.checkValidSquare(board, s2)) {
-				System.out.println("illegal move");
-		    	return false;
+				if (!test) {
+					JOptionPane.showMessageDialog(null, "Please make a legal move!", "Illegal move", JOptionPane.WARNING_MESSAGE);
+				}
+				return false;
 		    }
 		}
 		
@@ -168,8 +172,10 @@ public class ChessBoard {
 	    copyBoard[s1.getY()][s1.getX()] = null;
 	    
 	    if (isKingInCheck(copyBoard[s2.getY()][s2.getX()].getColor(), copyBoard)) {	 
-	    	JOptionPane.showMessageDialog(null, "Can't leave your king in check!", "Invalid move", JOptionPane.WARNING_MESSAGE);        	
-	    	return false;
+	    	if (!test) {
+	    		JOptionPane.showMessageDialog(null, "Can't leave your king in check!", "Invalid move", JOptionPane.WARNING_MESSAGE);        	
+	    	}
+    		return false;
 	    }
 	    
 	    // The move is legal
@@ -217,7 +223,7 @@ public class ChessBoard {
 	}
 	
 	public boolean makeMove(Square s1, Square s2, boolean test) {
-		if (checkValidMove(s1, s2)) {
+		if (checkValidMove(s1, s2, test)) {
 	        Piece piece = board[s1.getY()][s1.getX()];
 	        Piece piece2 = board[s2.getY()][s2.getX()];
 	        
@@ -243,6 +249,9 @@ public class ChessBoard {
 	        piece.setX(s2.getX());
 	        piece.setY(s2.getY());
 	        piece.addMove();
+	        
+	        clearLastMoved();
+	        piece.setLastMoved(true);
 
 	        if (piece instanceof Pawn) {
 	            Pawn pawn = (Pawn) piece;
@@ -255,15 +264,16 @@ public class ChessBoard {
 	            	// ask which piece to promote to if pawn promotion
 		            if (pawn.checkForPromotion(s2)) {
 		            	Piece type = new Queen(pawn.getColor(), s2.getX(), s2.getY());
-		            	String input = "q";
+		            	char promoteTo = 'q';
 		            	
 		            	if (!test) {
 		            		// receive user input if active board
-			            	input = JOptionPane.showInputDialog(null, "Promote to: (default is queen)", "Pawn promotion", JOptionPane.QUESTION_MESSAGE);		            	
+			            	String input = JOptionPane.showInputDialog(null, "Promote to: (default is queen)", "Pawn promotion", JOptionPane.QUESTION_MESSAGE);		  
+			            	if (!input.equals("")) {
+			            		// trying to account for all potential spelling errors
+				            	promoteTo = Character.toLowerCase(input.charAt(0));
+			            	}
 		            	}
-		            	
-		            	// trying to account for all potential spelling errors
-		            	char promoteTo = Character.toLowerCase(input.charAt(0));
 		            	
 		            	try {
 	            	      switch (promoteTo) {
@@ -286,9 +296,10 @@ public class ChessBoard {
 		            	pawn.promote(type);
 		            	pawn.getPromotedTo().setPosition(pawn.getPosition());
 		            }
-	            } else { // update position of piece pawn is promoted to also
+	            } else { // update attributes of promoted piece as well
 	            	pawn.getPromotedTo().setPosition(pawn.getPosition());
 	            	pawn.getPromotedTo().addMove();
+	            	pawn.getPromotedTo().setLastMoved(true);
 	            }
 	        }
 
@@ -334,7 +345,6 @@ public class ChessBoard {
 	        
 	        updateFEN(toFEN(board), 0); // update board FEN after every move
 	        
-	        
 	        return true;
 	    } else {
 	        return false;
@@ -346,6 +356,23 @@ public class ChessBoard {
 		Square s2 = new Square(move.substring(2, 4));
 		
 		makeMove(s1, s2, test);
+	}
+	
+	public void clearLastMoved() {
+		for (int y = 0; y < 8; y++) {
+	        for (int x = 0; x < 8; x++) {
+	            Piece p = board[y][x];
+	            if (p != null) {
+	            	p.setLastMoved(false);
+	            	if (p.getClass().getSimpleName().equals("Pawn")){
+	            		Pawn pawn = (Pawn) p;
+	            		if (pawn.isPromoted()) {
+	            			pawn.getPromotedTo().setLastMoved(false);
+	            		}
+	            	}
+	            }
+	        }
+	    }
 	}
 
 	public boolean isValidChessPosition() {

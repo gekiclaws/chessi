@@ -8,6 +8,7 @@ public class Piece {
 	protected int x;
 	protected int y;
 	protected int moves;
+	protected boolean lastMoved;
 	
 	public Piece(String color, int x, int y) {
 		this.setColor(color);
@@ -15,13 +16,19 @@ public class Piece {
 		this.x = x;
 		this.y = y;
 		this.moves = 0;
+		this.lastMoved = false;
 	}
 	
+	public boolean isLastMoved() {
+		return lastMoved;
+	}
+
+	public void setLastMoved(boolean lastMoved) {
+		this.lastMoved = lastMoved;
+	}
+
 	public Piece(String color, int x, int y, int moves) {
-		this.setColor(color);
-		this.position = new Square(x,y);
-		this.x = x;
-		this.y = y;
+		this(color, x, y);
 		this.moves = moves;
 	}
 

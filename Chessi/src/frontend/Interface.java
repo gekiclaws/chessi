@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 import backend.Bishop;
 import backend.ChessBoard;
@@ -105,15 +106,16 @@ public class Interface {
     	
     	KeyListener copyPasteKeyListener = new KeyAdapter() {
     	    public void keyPressed(KeyEvent e) {
-    	    	if (e.isControlDown() || e.isMetaDown()) { // On Mac, use the Command key
-    	    		if (e.getKeyCode() == KeyEvent.VK_A) {
-    	    			((JTextField)e.getSource()).selectAll();
+    	        if (e.isControlDown() || e.isMetaDown()) { // On Mac, use the Command key
+    	            JTextComponent source = (JTextComponent)e.getSource();
+    	            if (e.getKeyCode() == KeyEvent.VK_A) {
+    	                source.selectAll();
     	            } else if (e.getKeyCode() == KeyEvent.VK_C) {
-    	                ((JTextField)e.getSource()).copy();
+    	                source.copy();
     	            } else if (e.getKeyCode() == KeyEvent.VK_X) {
-    	                ((JTextField)e.getSource()).cut();
+    	                source.cut();
     	            } else if (e.getKeyCode() == KeyEvent.VK_V) {
-    	                ((JTextField)e.getSource()).paste();
+    	                source.paste();
     	            }
     	        }
     	    }
@@ -1274,7 +1276,7 @@ public class Interface {
         gbc_lblLine3.insets = new Insets(5, 0, 0, 0);
         engineLines.add(lblLine3, gbc_lblLine3);
         
-        JLabel lblEngineLines = new JLabel("<html>The top 3 engine lines at <br>depth 20 were:</html>");
+        JLabel lblEngineLines = new JLabel("<html>The top 3 engine lines at <br>depth 30 were:</html>");
         lblEngineLines.setFont(new Font("Chalkboard", Font.PLAIN, 15));
         lblEngineLines.setBounds(30, 12, 218, 46);
         result.add(lblEngineLines);
@@ -1512,8 +1514,8 @@ public class Interface {
 //                FEN = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
 //                FEN = "5b1r/ppk2ppp/2p1p1b1/4P3/Q3P3/2N5/PP3qPP/3R1B1K w - - 0 20";
 //                FEN = "8/8/8/2k5/8/8/3q4/1K6 w - - 0 1";
-//                FEN = "r1bqkbnr/pPppnppp/p7/8/8/8/P1PPPPPP/RNBQKBNR w KQkq - 0 1";
-                FEN = "r1bqkbnr/pp1ppppp/2n5/2p5/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1";
+                FEN = "r1bqkbnr/pPppnppp/p7/8/8/8/P1PPPPPP/RNBQKBNR w KQkq - 0 1";
+//                FEN = "r1bqkbnr/pp1ppppp/2n5/2p5/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1";
                 
                 if (app.getAnalysis().checkFEN(FEN)) {
                 	app.getAnalysis().getTheBoard().updateBoard(FEN);
@@ -1663,7 +1665,7 @@ public class Interface {
     			
         		squares.get(currentSquare.getName()).setBackground(currentColor);
         		
-//        		app.getAnalysis().getTheBoard().showBoard();
+        		app.getAnalysis().getTheBoard().showBoard();
     			
     			if (board[currentSquare.getY()][currentSquare.getX()] instanceof Pawn) {				
     				Pawn pawn = (Pawn) board[currentSquare.getY()][currentSquare.getX()];

@@ -67,6 +67,6 @@ public class Queen extends Piece {
 	}
 
 	public String toString() {
-		return (color + " queen at "+position.getName());
+		return (color + " queen at "+position.getName()+" "+moves);
 	}
 }
