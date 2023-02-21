@@ -21,5 +21,9 @@ public class Move {
 		this.endSquare = endSquare;
 	}
 	
+	public String toString() {
+		return startSquare.getName()+" to "+endSquare.getName();
+	}
+	
 	
 }

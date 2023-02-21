@@ -20,19 +20,12 @@ public class GuessTheEval {
 	private Connection conn;
 	private boolean positionAcquired;
 	
-//	public static void main(String[] args) throws ClassNotFoundException, SQLException {
-//		GuessTheEval X = new GuessTheEval();
-//	}
-	
 	public GuessTheEval() throws SQLException {
 		theBoard = new ChessBoard();
 		positionAcquired = false;
 		
 		// adapted from https://github.com/nomemory/neat-chess
 		engine = new UCI();
-		engine.startStockfish();
-		engine.setOption("MultiPV", "3");
-//		engine.close();
 		
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -48,6 +41,7 @@ public class GuessTheEval {
 //		System.out.println("user_table success!");
 		
 		// To re-initialize the database
+		deletePosition(4);
 		deletePosition(3);
 		deletePosition(2);
 		deletePosition(1);
@@ -55,6 +49,7 @@ public class GuessTheEval {
 		addPosition("5b1r/ppk2ppp/2p1p1b1/4P3/Q3P3/2N5/PP3qPP/3R1B1K w - - 0 20", "In this position, Nb5+ is the best and only move. This move gives a significant edge to white since after the exchange there is no way to stop Rd7 and Qb7.");
 		addPosition("8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 w - - 0 1", "This position is a draw, as neither side can make progress. Kg2 or Kh2 are both valid moves here.");
 		addPosition("r1bqr1k1/pp3ppp/1npb4/3pN2n/3P1P1P/2PB1N2/PP3PP1/R2QR1K1 w - - 1 14", "In this position, Bxh7+ is the best move and gives an edge to white, as it is an example of a typical greek gift sacrifice on h7.");
+		addPosition("8/4R3/5kpp/p1pP4/r3P3/6PP/4K3/8 w - - 2 43", "In this position, d6 is best and gives a significant edge to white as white intends promotion via d6-d7-d8 and black cannot stop this plan.");
 		
 	}
 	
@@ -91,8 +86,6 @@ public class GuessTheEval {
 	            }
 	        }
 	        
-	        System.out.println(activeId);
-	        
 	        // prevent the position from loading in GUI if no positions left
 	        return positionAcquired ? true : false;
 		}
@@ -106,29 +99,40 @@ public class GuessTheEval {
 		eval = Double.parseDouble(df.format(eval));
 		
 		// adapted from https://github.com/nomemory/neat-chess
+		engine.startStockfish();
+		engine.setOption("MultiPV", "3");
 		engine.uciNewGame();
 		engine.positionFen((String) getPositions().get(activeId-1)[1]);
 		UCIResponse<Analysis> response = engine.analysis(20);
+		engine.close();
 		var analysis = response.getResultOrThrow();
 
-		// get possible best moves
+		// get possible continuations
 		var moves = analysis.getAllMoves();
 		moves.forEach((idx, move) -> {
 		    char toMove = theBoard.getColor();
 			int moveNo = theBoard.getMoveNo();
 			
-			String[] line = new String[move.getContinuation().length+1];
+			String[] line = new String[move.getContinuation().length+1]; // trim move.getContinuation().length to 5 moves
 			line[0] = move.getLan();
+			System.out.println(line[0]);
 			for (int i = 0; i < move.getContinuation().length; i++) {
 			    line[i+1] = move.getContinuation()[i];
 			}
 			
-			String[] parsedLine = theBoard.parseContinuation(line);
+			String[] parsedLine;
+			if (line.length > 2) {
+				parsedLine = theBoard.parseContinuation(line);
+			} else {
+				parsedLine = new String[1];
+				parsedLine[0] = theBoard.parseMove(line[0]);
+			}
+			
 			String lineStr = "";
 			
 			for (int i = 0; i < parsedLine.length; i++) {
 				if (lineStr == "") {
-					lineStr += moveNo + ". " + parsedLine[i] + " "; // formatting, only add new move no if white to move or at start of line
+					lineStr += moveNo + ". " + parsedLine[i] + " "; // formatting - only add new move no. if white to move or at start of line
 					moveNo = (toMove == 'b' ? moveNo+1 : moveNo);
 					toMove = (toMove == 'w' ? 'b' : 'w');
 				} else {
@@ -142,19 +146,30 @@ public class GuessTheEval {
 				    }
 				}
 			}
-		    
-		    feedback[idx-1] = move.getStrength() + " | " + lineStr;
+			
+			if (theBoard.getColor() == 'w') {
+				feedback[idx-1] = move.getStrength() + " | " + lineStr;
+			} else {
+				if (move.getStrength().isForcedMate()) {
+					feedback[idx-1] = "-"+move.getStrength() + " | " + lineStr;
+				} else {
+					feedback[idx-1] = move.getStrength().getScore()*-1 + " | " + lineStr;
+				}
+			}
 		});
 
+		// get best move
 		String bestMove = theBoard.parseMove(analysis.getBestMove().getLan());
 		feedback[3] = "<html>The best move was " + bestMove + "<br>"+theBoard.parseMove(moveGuess)+" was " + (bestMove.equals(theBoard.parseMove(moveGuess)) ? "right!" : "wrong!");
 		
+		// get eval for top move
 		double correctEval = analysis.getBestMove().getStrength().getScore(); // assumes eval isn't mate-in-x
     	feedback[4] = "<html>The correct eval was " + correctEval + "<br>"+eval+" was " + (eval == correctEval ? "right!" : "off by "+Double.parseDouble(df.format(eval-correctEval))) + "<html>";
     	
+    	// get explanation from database
     	feedback[5] = (String) getPositions().get(activeId-1)[2];
 		
-    	updatePosition(activeId); // update attempted in database
+    	updatePosition(activeId); // update 'attempted' in database
     	
 		return feedback;
 	}
@@ -216,7 +231,7 @@ public class GuessTheEval {
           Object[] position = {id, FEN, explanation, attempted};
           positions.add(position);
          
-          System.out.println("id: " + id + ", FEN: " + FEN + ", explanation: " + explanation + ", attempted: " + attempted);
+//          System.out.println("id: " + id + ", FEN: " + FEN + ", explanation: " + explanation + ", attempted: " + attempted);
         }
 		
         return positions;

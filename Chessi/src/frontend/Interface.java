@@ -4,14 +4,13 @@ package frontend;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.*;
 
 import javax.swing.*;
 
 import backend.Bishop;
+import backend.ChessBoard;
 import backend.Chessi;
 import backend.King;
 import backend.Knight;
@@ -33,11 +32,17 @@ public class Interface {
     private boolean pauseBoard_GTE;
     private boolean pauseBoard_analysis;
     
+    private JTextArea lblTimeline;
+    private JLabel lblLine1_analysis;
+    private JLabel lblLine2_analysis;
+    private JLabel lblLine3_analysis;
+    
     private boolean analysisMode;
     
     public void addComponentToPane(Container pane) throws SQLException{
     	app = new Chessi();
     	buttonClicked = false;
+    	pauseBoard_analysis = true;
     	
         // Create the panel that contains the windows
         cards = new JPanel(new CardLayout());
@@ -96,6 +101,22 @@ public class Interface {
             public void focusLost(FocusEvent e) {
             	
             }
+    	};
+    	
+    	KeyListener copyPasteKeyListener = new KeyAdapter() {
+    	    public void keyPressed(KeyEvent e) {
+    	    	if (e.isControlDown() || e.isMetaDown()) { // On Mac, use the Command key
+    	    		if (e.getKeyCode() == KeyEvent.VK_A) {
+    	    			((JTextField)e.getSource()).selectAll();
+    	            } else if (e.getKeyCode() == KeyEvent.VK_C) {
+    	                ((JTextField)e.getSource()).copy();
+    	            } else if (e.getKeyCode() == KeyEvent.VK_X) {
+    	                ((JTextField)e.getSource()).cut();
+    	            } else if (e.getKeyCode() == KeyEvent.VK_V) {
+    	                ((JTextField)e.getSource()).paste();
+    	            }
+    	        }
+    	    }
     	};
     	
     	JTextField a1 = new JTextField();
@@ -1174,7 +1195,6 @@ public class Interface {
         sidebarPane.add(sidebar);
         
         // GTE sidebar
-        
         JPanel gte = new JPanel();
         sidebar.add(gte, "gte");
         gte.setLayout(new CardLayout(0, 0));
@@ -1192,6 +1212,7 @@ public class Interface {
         evalTextField.setBounds(30, 65, 202, 34);
         main.add(evalTextField);
         evalTextField.setColumns(10);
+        evalTextField.addKeyListener(copyPasteKeyListener);
         
         JLabel lblMove = new JLabel("What's the best move?");
         lblMove.setFont(new Font("Chalkboard", Font.PLAIN, 20));
@@ -1217,12 +1238,6 @@ public class Interface {
         lblToPlay.setFont(new Font("Chalkboard", Font.PLAIN, 18));
         lblToPlay.setBounds(30, 145, 258, 50);
         main.add(lblToPlay);
-        
-//        JButton backBtn = new JButton(icon);
-//        backBtn.setBorderPainted(false);
-//        backBtn.setBackground(SystemColor.window); 
-//        backBtn.setBounds(238, 410, 50, 50);
-//        main.add(backBtn);
         
         JPanel result = new JPanel();
         gte.add(result, "result");
@@ -1393,16 +1408,6 @@ public class Interface {
         	}
         });
         
-//        backBtn_results.addActionListener(new ActionListener() {
-//        	public void actionPerformed(ActionEvent e) {
-//        		pauseBoard_GTE = false;
-//        		
-//        		CardLayout cl = (CardLayout)(cards.getLayout());
-//                cl.show(cards, "mainWindow");
-//                
-//        	}
-//        });
-        
      // analysis sidebar
        
         JPanel analysis = new JPanel();
@@ -1422,6 +1427,7 @@ public class Interface {
         FENTextField.setBounds(30, 99, 240, 34);
         setup.add(FENTextField);
         FENTextField.setColumns(10);
+        FENTextField.addKeyListener(copyPasteKeyListener);
         
         JButton btnLoad = new JButton("Load");
         btnLoad.setFont(new Font("Chalkboard", Font.PLAIN, 18));
@@ -1448,30 +1454,32 @@ public class Interface {
         gbl_engineLines_analysis.rowWeights = new double[]{0.0, 0.0, 0.0};
         engineLines_analysis.setLayout(gbl_engineLines_analysis);
         
-        JLabel lblLine1_analysis = new JLabel("New label");
+        lblLine1_analysis = new JLabel("New label");
         GridBagConstraints gbc_lblLine1_analysis = new GridBagConstraints();
         gbc_lblLine1_analysis.gridx = 0;
         gbc_lblLine1_analysis.gridy = 0;
         gbc_lblLine1_analysis.insets = new Insets(0, 0, 0, 0);
         engineLines_analysis.add(lblLine1_analysis, gbc_lblLine1_analysis);
         
-        JLabel lblLine2_analysis = new JLabel("New label");
+        lblLine2_analysis = new JLabel("New label");
         GridBagConstraints gbc_lblLine2_analysis = new GridBagConstraints();
         gbc_lblLine2_analysis.gridx = 0;
         gbc_lblLine2_analysis.gridy = 1;
         gbc_lblLine2_analysis.insets = new Insets(5, 0, 0, 0);
         engineLines_analysis.add(lblLine2_analysis, gbc_lblLine2_analysis);
         
-        JLabel lblLine3_analysis = new JLabel("New label");
+        lblLine3_analysis = new JLabel("New label");
         GridBagConstraints gbc_lblLine3_analysis = new GridBagConstraints();
         gbc_lblLine3_analysis.gridx = 0;
         gbc_lblLine3_analysis.gridy = 2;
         gbc_lblLine3_analysis.insets = new Insets(5, 0, 0, 0);
         engineLines_analysis.add(lblLine3_analysis, gbc_lblLine3_analysis);
         
-        JTextArea lblTimeline = new JTextArea();
+        lblTimeline = new JTextArea();
         lblTimeline.setLineWrap(true);
         lblTimeline.setWrapStyleWord(true);
+        lblTimeline.setEditable(false);
+        lblTimeline.addKeyListener(copyPasteKeyListener);
         JScrollPane timelinePane = new JScrollPane(lblTimeline);
         timelinePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); // To always show the vertical scrollbar
         timelinePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // To never show the horizontal scrollbar
@@ -1489,28 +1497,55 @@ public class Interface {
         gbl_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
         panel.setLayout(gbl_panel);
         
-        JButton btnNewButton = new JButton("New button");
-        GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-        gbc_btnNewButton.insets = new Insets(0, 0, 0, 5);
-        gbc_btnNewButton.gridx = 0;
-        gbc_btnNewButton.gridy = 0;
-        panel.add(btnNewButton, gbc_btnNewButton);
+        JButton btnNewAnalysis = new JButton("New analysis");
+        GridBagConstraints gbc_btnNewAnalysis = new GridBagConstraints();
+        gbc_btnNewAnalysis.insets = new Insets(0, 0, 0, 5);
+        gbc_btnNewAnalysis.gridx = 0;
+        gbc_btnNewAnalysis.gridy = 0;
+        panel.add(btnNewAnalysis, gbc_btnNewAnalysis);
         
         btnLoad.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		buttonClicked = true;
-        		pauseBoard_analysis = false;
+                String FEN = FENTextField.getText();
+//                FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+//                FEN = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
+//                FEN = "5b1r/ppk2ppp/2p1p1b1/4P3/Q3P3/2N5/PP3qPP/3R1B1K w - - 0 20";
+//                FEN = "8/8/8/2k5/8/8/3q4/1K6 w - - 0 1";
+//                FEN = "r1bqkbnr/pPppnppp/p7/8/8/8/P1PPPPPP/RNBQKBNR w KQkq - 0 1";
+                FEN = "r1bqkbnr/pp1ppppp/2n5/2p5/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1";
+                
+                if (app.getAnalysis().checkFEN(FEN)) {
+                	app.getAnalysis().getTheBoard().updateBoard(FEN);
+                	Piece[][] board = app.getAnalysis().getTheBoard().getBoard();
+                    updateGUIBoard(board);
+                    
+                    CardLayout cl = (CardLayout)(analysis.getLayout());
+                    cl.show(analysis, "analysisPage");
+                    
+                    pauseBoard_analysis = false;
+                    
+                    updateLines();
+                    
+                } else {
+                	JOptionPane.showMessageDialog(null, "Invalid FEN, please try again", "Alert", JOptionPane.WARNING_MESSAGE);
+                }
+        	}
+        });
+        
+        btnNewAnalysis.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		buttonClicked = true;
+        		pauseBoard_analysis = true;
         		
-        		CardLayout cl = (CardLayout)(analysis.getLayout());
-                cl.show(analysis, "analysisPage");
-                
-//                if (app.getAnalysis().getCurrentGame().getTheBoard().loadBoard(FENTextField.getText()))
-                
-                Piece[][] board = app.getAnalysis().getCurrentGame().getTheBoard().getBoard();
+                app.getAnalysis().resetAnalysis();
+            	Piece[][] board = app.getAnalysis().getTheBoard().getBoard();
                 updateGUIBoard(board);
                 
-                lblToPlay.setText((app.getAnalysis().getCurrentGame().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
+                lblTimeline.setText("");
                 
+                CardLayout cl = (CardLayout)(analysis.getLayout());
+                cl.show(analysis, "setup");
         	}
         });
         
@@ -1523,26 +1558,22 @@ public class Interface {
         analysisButton.setFont(new Font("Chalkboard", Font.BOLD, 40));
         analysisButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
+        		analysisMode = true;
+        		
         		CardLayout cl = (CardLayout)(cards.getLayout());
                 cl.show(cards, "gameWindow");
                 
                 cl = (CardLayout)(sidebar.getLayout());
                 cl.show(sidebar, "analysis");
                 
-                analysisMode = true;
-                
-//                app.getGTE().loadNewPosition(2);
-//                
-//                Piece[][] board = app.getGTE().getTheBoard().getBoard();
-//                updateGUIBoard(board);
-             
+                Piece[][] board = app.getAnalysis().getTheBoard().getBoard();
+                updateGUIBoard(board);
         	}
         });
         analysisButton.setBounds(40, 104, 300, 250);
         mainWindow.add(analysisButton);
         
         // GTE
-        
         JButton gteButton = new JButton("<html><center>Guess the<br>eval</center></html>");
         gteButton.setFont(new Font("Chalkboard", Font.BOLD, 40));
         gteButton.addActionListener(new ActionListener() {
@@ -1584,16 +1615,14 @@ public class Interface {
     }
   
     
-    public void update(JTextField textField, Square s) {
+    private void update(JTextField textField, Square s) {
     	Piece[][] board = new Piece[8][8];
     	
     	if (analysisMode) {
-    		board = app.getAnalysis().getCurrentGame().getTheBoard().copyBoard();
+    		board = app.getAnalysis().getTheBoard().copyBoard();
     	} else {
     		board = app.getGTE().getTheBoard().copyBoard();
     	}
-    	
-    	System.out.println(s.getName());
     	
     	if (currentSquare == null && board[s.getY()][s.getX()] != null) {
     		currentColor = textField.getBackground();
@@ -1601,8 +1630,22 @@ public class Interface {
         	currentSquare = s;
     	} else if (currentSquare != null) {
     		boolean legal = false;
+    		Move move = new Move(currentSquare, s);
+    		String moveName = "";
+    		char toMove = 'w';
+    		int moveNo = 1;
     		
-    		if (!analysisMode) {
+    		if (analysisMode) {
+    			if(app.getAnalysis().getTheBoard().getSquareColor(currentSquare).charAt(0) == app.getAnalysis().getTheBoard().getColor()) {
+    				moveName = app.getAnalysis().getTheBoard().parseMove(move);
+					toMove = app.getAnalysis().getTheBoard().getColor();
+		    		moveNo = app.getAnalysis().getTheBoard().getMoveNo();
+		    		
+    				legal = app.getAnalysis().getTheBoard().makeMove(currentSquare, s);
+				} else {
+					JOptionPane.showMessageDialog(null, "Please play a move with the correct color", "Alert", JOptionPane.WARNING_MESSAGE);
+				}
+    		} else {
     			if(app.getGTE().getMoveGuess() != null) {
     				JOptionPane.showMessageDialog(null, "Please undo your move before making a new move", "Alert", JOptionPane.WARNING_MESSAGE);
     			} else {
@@ -1612,23 +1655,21 @@ public class Interface {
     					JOptionPane.showMessageDialog(null, "Please play a move with the correct color", "Alert", JOptionPane.WARNING_MESSAGE);
     				}
     			}
-    		} else {
-    			legal = app.getAnalysis().getCurrentGame().getTheBoard().makeMove(currentSquare, s);
     		}
-    		
-    		System.out.println(legal);
     		
     		if (legal) { // if user makes a legal move
     			squares.get(s.getName()).setText(squares.get(currentSquare.getName()).getText());
     			squares.get(currentSquare.getName()).setText("");
     			
         		squares.get(currentSquare.getName()).setBackground(currentColor);
+        		
+//        		app.getAnalysis().getTheBoard().showBoard();
     			
     			if (board[currentSquare.getY()][currentSquare.getX()] instanceof Pawn) {				
     				Pawn pawn = (Pawn) board[currentSquare.getY()][currentSquare.getX()];
     				
     				// remove extra pawn if en passant
-    				if (pawn.canBeCapturedEnPassant(board, pawn.getColor(), currentSquare, s)) {
+    				if (board[s.getY()][s.getX()] == null && pawn.canBeCapturedEnPassant(board, pawn.getColor(), currentSquare, s)) {
     					System.out.println(new Square(s.getX(), currentSquare.getY()).getName());
     					squares.get(new Square(s.getX(), currentSquare.getY()).getName()).setText("");
     				}
@@ -1636,7 +1677,7 @@ public class Interface {
     				// promote pawn if it reaches the end
     				if (pawn.checkForPromotion(s) && !pawn.isPromoted()) {
     					if (analysisMode) {
-    			    		board = app.getAnalysis().getCurrentGame().getTheBoard().copyBoard();
+    			    		board = app.getAnalysis().getTheBoard().copyBoard();
     			    	} else {
     			    		board = app.getGTE().getTheBoard().copyBoard();
     			    	}
@@ -1645,12 +1686,15 @@ public class Interface {
     					switch (type) {
 	    				    case "Rook":
 	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♖" : "♜");
+	    				        moveName = moveName.substring(0, moveName.length()-1)+"R";
 	    				        break;
 	    				    case "Knight":
 	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♘" : "♞");
+	    				        moveName = moveName.substring(0, moveName.length()-1)+"N";
 	    				        break;
 	    				    case "Bishop":
 	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♗" : "♝");
+	    				        moveName = moveName.substring(0, moveName.length()-1)+"B";
 	    				        break;
 	    				    case "Queen":
 	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♕" : "♛");
@@ -1679,8 +1723,12 @@ public class Interface {
     			    }
     			}
     			
-    			if(!analysisMode) {
-    				app.getGTE().setMoveGuess(new Move(currentSquare, s));
+    			if (analysisMode) {
+    				app.getAnalysis().makeMove(move, moveName, toMove, moveNo);
+    				lblTimeline.setText(app.getAnalysis().getTimeline());
+    				updateLines();
+    			} else {
+    				app.getGTE().setMoveGuess(move);
     			}
     				
     			currentSquare = null;
@@ -1701,7 +1749,7 @@ public class Interface {
     	}
     }
     
-    public void updateGUIBoard(Piece[][] board) {
+    private void updateGUIBoard(Piece[][] board) {
     	for (int i = 0; i < board.length; i++) {
         	for (int k = 0; k<board[0].length; k++) {
         		String type = "";
@@ -1737,6 +1785,12 @@ public class Interface {
         }
     }
     
+    private void updateLines() {
+    	String[] lines = app.getAnalysis().getLines();
+    	lblLine1_analysis.setText(lines[0]);
+    	lblLine2_analysis.setText(lines[1]);
+    	lblLine3_analysis.setText(lines[2]);
+    }
     
     private static void createAndShowGUI() throws SQLException {
         //Create and set up the window.

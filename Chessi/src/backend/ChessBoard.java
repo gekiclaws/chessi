@@ -8,19 +8,21 @@ public class ChessBoard {
 	private Piece[][] board;
 	private String boardFEN;
     
-    public ChessBoard() {
-        board = new Piece[8][8];
-        boardFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        
-        updateBoard(boardFEN);
-    }
-    
-    public ChessBoard(String FEN) {
+	public ChessBoard(String FEN) {
         board = new Piece[8][8];
         boardFEN = FEN;
         
         updateBoard(boardFEN);
     }
+	
+	public ChessBoard() {
+    	this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    }
+	
+	public ChessBoard(Piece[][] board, String FEN) {
+		this.board = board;
+		this.boardFEN = FEN;
+	}
     
     public void resetBoard() {
 		updateBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -174,7 +176,7 @@ public class ChessBoard {
 	    return true;
 	}
 
-	private boolean isKingInCheck(String color, Piece[][] board) {
+	public boolean isKingInCheck(String color, Piece[][] board) {
 		
 		// Find the king's position
 	    Square kingPos = null;
@@ -211,8 +213,13 @@ public class ChessBoard {
 	}
 	
 	public boolean makeMove(Square s1, Square s2) {
+		return makeMove(s1, s2, false);
+	}
+	
+	public boolean makeMove(Square s1, Square s2, boolean test) {
 		if (checkValidMove(s1, s2)) {
 	        Piece piece = board[s1.getY()][s1.getX()];
+	        Piece piece2 = board[s2.getY()][s2.getX()];
 	        
 	        if (piece instanceof Rook) {
 	        	// removing castling rights on the side that the rook is moving from
@@ -235,21 +242,25 @@ public class ChessBoard {
 	        piece.setPosition(s2);
 	        piece.setX(s2.getX());
 	        piece.setY(s2.getY());
+	        piece.addMove();
 
 	        if (piece instanceof Pawn) {
 	            Pawn pawn = (Pawn) piece;
 	            if (!pawn.isPromoted()) {
 	            	// remove enemy pawn from board if en passant
-	            	if (pawn.canBeCapturedEnPassant(board, pawn.getColor(), s1, s2)) {
+	            	if (piece2 == null && pawn.canBeCapturedEnPassant(board, pawn.getColor(), s1, s2)) {
 		                board[s1.getY()][s2.getX()] = null;
 		            }
 		            
 	            	// ask which piece to promote to if pawn promotion
 		            if (pawn.checkForPromotion(s2)) {
 		            	Piece type = new Queen(pawn.getColor(), s2.getX(), s2.getY());
+		            	String input = "q";
 		            	
-		            	// receive user input
-		            	String input = JOptionPane.showInputDialog(null, "Promote to: (default is queen)", "Pawn promotion", JOptionPane.QUESTION_MESSAGE);
+		            	if (!test) {
+		            		// receive user input if active board
+			            	input = JOptionPane.showInputDialog(null, "Promote to: (default is queen)", "Pawn promotion", JOptionPane.QUESTION_MESSAGE);		            	
+		            	}
 		            	
 		            	// trying to account for all potential spelling errors
 		            	char promoteTo = Character.toLowerCase(input.charAt(0));
@@ -258,6 +269,7 @@ public class ChessBoard {
 	            	      switch (promoteTo) {
 		          			case 'r':
 		          				type = new Rook(pawn.getColor(), s2.getX(), s2.getY());
+		          				System.out.println("rook");
 		          				break;
 		          			case 'k':
 		          				type = new Knight(pawn.getColor(), s2.getX(), s2.getY());
@@ -266,6 +278,7 @@ public class ChessBoard {
 		          				type = new Bishop(pawn.getColor(), s2.getX(), s2.getY());
 		          				break;
 		          			default:
+		          				type = new Queen(pawn.getColor(), s2.getX(), s2.getY());
 	            	      }
 	            	    } catch (Exception e) {
 	            	    }
@@ -275,11 +288,11 @@ public class ChessBoard {
 		            }
 	            } else { // update position of piece pawn is promoted to also
 	            	pawn.getPromotedTo().setPosition(pawn.getPosition());
+	            	pawn.getPromotedTo().addMove();
 	            }
 	        }
 
 	        board[s2.getY()][s2.getX()] = piece;
-	        piece.addMove();
 	        board[s1.getY()][s1.getX()] = null;
 
 	        
@@ -321,17 +334,18 @@ public class ChessBoard {
 	        
 	        updateFEN(toFEN(board), 0); // update board FEN after every move
 	        
+	        
 	        return true;
 	    } else {
 	        return false;
 	    }
 	}
 	
-	public void makeMove(String move) {
+	public void makeMove(String move, boolean test) {
 		Square s1 = new Square(move.substring(0, 2));
 		Square s2 = new Square(move.substring(2, 4));
 		
-		makeMove(s1, s2);
+		makeMove(s1, s2, test);
 	}
 
 	public boolean isValidChessPosition() {
@@ -364,6 +378,10 @@ public class ChessBoard {
 	            return false;
 	        }
 	    }
+	    
+	    // more checks that could be implemented
+	    // check kings are at least one square apart
+	    // active color checked less than 3 times
 
 	    return true;
 	}
@@ -376,19 +394,7 @@ public class ChessBoard {
 	            	Piece piece = board[i][j];
 	                if (piece instanceof Pawn) {
 	                	Pawn pawn = (Pawn) piece;
-	                	if (piece.getColor().equals("black")) {
-	                		if (i == 1) {
-	                			copyBoard[i][j] = new Pawn("black", pawn.getX(), pawn.getY(), pawn.getMoves(), pawn.getPromotedTo());
-							} else {
-								copyBoard[i][j] = new Pawn("black", pawn.getX(), piece.getY(), pawn.getMoves(), pawn.getPromotedTo());
-							}
-	                	} else {
-	                		if (i == 6) {
-								copyBoard[i][j] = new Pawn("white", pawn.getX(), pawn.getY(), pawn.getMoves(), pawn.getPromotedTo());
-							} else {
-								copyBoard[i][j] = new Pawn("white", pawn.getX(), pawn.getY(), pawn.getMoves(), pawn.getPromotedTo());
-							}
-	                	}
+	                	copyBoard[i][j] = new Pawn(piece.getColor(), pawn.getX(), pawn.getY(), pawn.getMoves(), pawn.getPromotedTo());
 	                } else if (piece instanceof Knight) {
 	                    copyBoard[i][j] = new Knight(piece.getColor(), piece.getX(), piece.getY(), piece.getMoves());
 	                } else if (piece instanceof Bishop) {
@@ -435,23 +441,61 @@ public class ChessBoard {
 		Piece piece1 = board[s1.getY()][s1.getX()];
 		Piece piece2 = board[s2.getY()][s2.getX()];
 		
-		if (piece1.getClass().getSimpleName().equals("Knight")) {
-			moveName = "N";
-		} else if (!piece1.getClass().getSimpleName().equals("Pawn")){
-			moveName = Character.toString(piece1.getClass().getSimpleName().charAt(0));
+		if (piece1 != null) { // move is only possible if piece1 is a piece
+			if (piece1.getClass().getSimpleName().equals("Knight")) {
+				moveName = "N";
+			} else if (!piece1.getClass().getSimpleName().equals("Pawn")){
+				moveName = Character.toString(piece1.getClass().getSimpleName().charAt(0));
+			} else {
+				// if pawn is promoted use the class name of the promoted piece
+				Pawn pawn = (Pawn) piece1;
+				if (pawn.getPromotedTo() != null) {
+					if (pawn.getPromotedTo().getClass().getSimpleName().equals("Knight")) {
+    					moveName += "N";
+    				} else {
+    					moveName += Character.toString(pawn.getPromotedTo().getClass().getSimpleName().charAt(0));
+    				}
+				}
+			}
+			
+			if (piece2 != null) {
+				// checking if pawn takes
+				if (piece1.getClass().getSimpleName().equals("Pawn")){
+					Pawn pawn = (Pawn) piece1;
+					if (pawn.getPromotedTo() == null) {
+						moveName += Character.toString(piece1.getPosition().getName().charAt(0));
+					}
+				}
+				moveName += "x";
+			} else {
+				// checking for en passant
+				if (piece1.getClass().getSimpleName().equals("Pawn")){
+					Pawn pawn = (Pawn) piece1;
+					if (pawn.canBeCapturedEnPassant(board, pawn.getColor(), s1, s2)) {
+						moveName += Character.toString(piece1.getPosition().getName().charAt(0))+"x";
+					}
+				}
+			}
+			
+			moveName += s2.getName();
+			
+			// Make a copy of the board to simulate the move and see if the move causes pawn promotion / puts the opponent's king in check
+		    ChessBoard copy = new ChessBoard(boardFEN);
+		    if(copy.makeMove(s1, s2, true)) {
+		    	Piece pc = copy.getBoard()[s2.getY()][s2.getX()];
+		    	if (pc.getClass().getSimpleName().equals("Pawn")) {
+		    		Pawn pawn = (Pawn) pc;
+		    		if (pawn.getPromotedTo() != null) {
+		    			if (pawn.getPromotedTo().getMoves() == 0) {
+		    				moveName += "=Q"; // if promotion on real board, timeline will be updated from UI to get specific piece promoted to
+		    			}
+		    		}
+		    	}
+		    	if (copy.isKingInCheck(getColor() == 'w' ? "black" : "white", copy.getBoard())) {
+			    	moveName += "+";
+			    }
+		    }
 		}
-		
-		if (piece2 != null) {
-			moveName += "x";
-		}
-		moveName += s2.getName();
-		
-		// Make a copy of the board to simulate the move and see if the move puts the opponent's king in check
-	    ChessBoard copy = new ChessBoard(boardFEN);
-	    copy.makeMove(s1, s2);
-	    if (copy.isKingInCheck(getColor() == 'w' ? "black" : "white", copy.getBoard())) {
-	    	moveName += "+";
-	    }
 		
 		return moveName;
 	}
@@ -465,18 +509,32 @@ public class ChessBoard {
 	
 	public String[] parseContinuation(String[] line) {
 		String[] parsedLine = new String[line.length];
-		String FEN = boardFEN;
+		
+		ChessBoard copy = new ChessBoard(boardFEN);
 		
 		for (int i=0;i<line.length;i++) {
-			parsedLine[i] = parseMove(line[i]);
-			makeMove(line[i]);
+			parsedLine[i] = copy.parseMove(line[i]);
+			copy.makeMove(line[i], true);
 		}
-		
-		updateBoard(FEN);
 		
 		return parsedLine;
 	}
 	
+//	public boolean isStalemate(Color color) {
+//	    // Check if the player's king is not in check and there are no legal moves left
+//	    if (!isInCheck(color) && !hasLegalMoves(color)) {
+//	        return true;
+//	    }
+//	    return false;
+//	}
+//
+//	public boolean isCheckmate(Color color) {
+//	    // Check if the player's king is in check and there are no legal moves left
+//	    if (isInCheck(color) && !hasLegalMoves(color)) {
+//	        return true;
+//	    }
+//	    return false;
+//	}
 	
 	public Piece[][] getBoard(){
 		return board;
