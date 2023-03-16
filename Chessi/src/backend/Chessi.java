@@ -2,8 +2,6 @@ package backend;
 
 import java.sql.SQLException;
 
-import stockfish.UCI;
-
 public class Chessi {
 	private GuessTheEval GTE;
 	private AnalysisBoard Analysis;
@@ -21,3 +19,5 @@ public class Chessi {
 		return Analysis;
 	}
 }
+
+

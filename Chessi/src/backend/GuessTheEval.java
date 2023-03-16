@@ -1,7 +1,6 @@
 package backend;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.LinkedList;
 
 import stockfish.UCI;
@@ -11,21 +10,25 @@ import stockfish.model.Analysis;
 import java.sql.*;
 
 public class GuessTheEval {
-	private Move moveGuess;
-	private ChessBoard theBoard;
-	private int activeId;
 	private UCI engine;
+	
+	private ChessBoard theBoard;
+	private Move moveGuess;
+	
+	private int activeId;
+	private boolean positionAcquired;
+	
 	private PreparedStatement stmt;
 	private String sql;
 	private Connection conn;
-	private boolean positionAcquired;
+	
 	
 	public GuessTheEval() throws SQLException {
+		// adapted from https://github.com/nomemory/neat-chess
+		engine = new UCI(); // Creating a UCI object to connect to the engine later
+				
 		theBoard = new ChessBoard();
 		positionAcquired = false;
-		
-		// adapted from https://github.com/nomemory/neat-chess
-		engine = new UCI();
 		
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -34,18 +37,18 @@ public class GuessTheEval {
 			System.out.println(e);
 		}
 			
-//		// Create the table (in case you delete the table by accident)
-//		sql = "CREATE TABLE IF NOT EXISTS positions (id INT NOT NULL AUTO_INCREMENT, FEN VARCHAR(90), explanation VARCHAR(1024), attempted TINYINT(1), PRIMARY KEY (id))";
-//		stmt = conn.prepareStatement(sql);
-//		stmt.executeUpdate();
-//		System.out.println("user_table success!");
+		// Create the table if it doesn't exist
+		sql = "CREATE TABLE IF NOT EXISTS positions (id INT NOT NULL AUTO_INCREMENT, FEN VARCHAR(90), "
+				+ "explanation VARCHAR(1024), attempted TINYINT(1), PRIMARY KEY (id))";
+		stmt = conn.prepareStatement(sql);
+		stmt.executeUpdate();
+		System.out.println("user table created!");
 		
-		// To re-initialize the database
-		deletePosition(4);
-		deletePosition(3);
-		deletePosition(2);
-		deletePosition(1);
-		
+		// Code to re-initialize the database (comment out this section after adding positions and testing)
+		for (int i = getPositions().size(); i >= 1; i--) {
+		    deletePosition(i);
+		}
+		addPosition("5b1r/ppk2ppp/2p1p1b1/4P3/Q3P3/2N5/PP3qPP/3R1B1K w - - 0 20", "In this position, Nb5+ is the best and only move. This move gives a significant edge to white since after the exchange there is no way to stop Rd7 and Qb7.");
 		addPosition("5b1r/ppk2ppp/2p1p1b1/4P3/Q3P3/2N5/PP3qPP/3R1B1K w - - 0 20", "In this position, Nb5+ is the best and only move. This move gives a significant edge to white since after the exchange there is no way to stop Rd7 and Qb7.");
 		addPosition("8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 w - - 0 1", "This position is a draw, as neither side can make progress. Kg2 or Kh2 are both valid moves here.");
 		addPosition("r1bqr1k1/pp3ppp/1npb4/3pN2n/3P1P1P/2PB1N2/PP3PP1/R2QR1K1 w - - 1 14", "In this position, Bxh7+ is the best move and gives an edge to white, as it is an example of a typical greek gift sacrifice on h7.");
@@ -94,6 +97,7 @@ public class GuessTheEval {
 	public String[] checkAnswers(double eval) throws SQLException {
 		String[] feedback =  new String[6];
 		
+		// To reduce the eval to 3 significant figures and a maximum of 2 decimal places
 		DecimalFormat df = new DecimalFormat("0.##");
 		df.setMaximumIntegerDigits(3);
 		eval = Double.parseDouble(df.format(eval));
@@ -108,68 +112,77 @@ public class GuessTheEval {
 		var analysis = response.getResultOrThrow();
 
 		// get possible continuations
+		// Get all available moves and iterate through them
 		var moves = analysis.getAllMoves();
 		moves.forEach((idx, move) -> {
+		    // Get the current color and move number on the board
 		    char toMove = theBoard.getColor();
-			int moveNo = theBoard.getMoveNo();
-			
-			String[] line = new String[move.getContinuation().length+1]; // trim move.getContinuation().length to 5 moves
-			line[0] = move.getLan();
-			System.out.println(line[0]);
-			for (int i = 0; i < move.getContinuation().length; i++) {
-			    line[i+1] = move.getContinuation()[i];
-			}
-			
-			String[] parsedLine;
-			if (line.length > 2) {
-				parsedLine = theBoard.parseContinuation(line);
-			} else {
-				parsedLine = new String[1];
-				parsedLine[0] = theBoard.parseMove(line[0]);
-			}
-			
-			String lineStr = "";
-			
-			for (int i = 0; i < parsedLine.length; i++) {
-				if (lineStr == "") {
-					lineStr += moveNo + ". " + parsedLine[i] + " "; // formatting - only add new move no. if white to move or at start of line
-					moveNo = (toMove == 'b' ? moveNo+1 : moveNo);
-					toMove = (toMove == 'w' ? 'b' : 'w');
-				} else {
-					if (toMove == 'w') {
-				    	lineStr += moveNo + ". " + parsedLine[i] + " ";
-				    	toMove = 'b';
-				    } else {
-				    	lineStr += parsedLine[i] + " ";
-				    	toMove = 'w';
-				    	moveNo += 1;
-				    }
-				}
-			}
-			
-			if (theBoard.getColor() == 'w') {
-				feedback[idx-1] = move.getStrength() + " | " + lineStr;
-			} else {
-				if (move.getStrength().isForcedMate()) {
-					feedback[idx-1] = "-"+move.getStrength() + " | " + lineStr;
-				} else {
-					feedback[idx-1] = move.getStrength().getScore()*-1 + " | " + lineStr;
-				}
-			}
+		    int moveNo = theBoard.getMoveNo();
+
+		    // Create an array to hold the current move and its continuation
+		    String[] line = new String[move.getContinuation().length+1];
+		    line[0] = move.getLan();
+		    System.out.println(line[0]);
+		    for (int i = 0; i < move.getContinuation().length; i++) {
+		        line[i+1] = move.getContinuation()[i];
+		    }
+
+		    // Parse the move and continuation to get a string representation of the move line
+		    String[] parsedLine;
+		    if (line.length > 2) {
+		        parsedLine = theBoard.parseContinuation(line);
+		    } else {
+		        parsedLine = new String[1];
+		        parsedLine[0] = theBoard.parseMove(line[0]);
+		    }
+
+		    // Build the move line string
+		    String lineStr = "";
+		    for (int i = 0; i < parsedLine.length; i++) {
+		        if (lineStr == "") {
+		            // Add move number if white to move or at start of line
+		            lineStr += moveNo + ". " + parsedLine[i] + " ";
+		            moveNo = (toMove == 'b' ? moveNo+1 : moveNo);
+		            toMove = (toMove == 'w' ? 'b' : 'w');
+		        } else {
+		            if (toMove == 'w') {
+		                lineStr += moveNo + ". " + parsedLine[i] + " ";
+		                toMove = 'b';
+		            } else {
+		                lineStr += parsedLine[i] + " ";
+		                toMove = 'w';
+		                moveNo += 1;
+		            }
+		        }
+		    }
+
+		    // Build the feedback string for this move
+		    if (theBoard.getColor() == 'w') {
+		        feedback[idx-1] = move.getStrength() + " | " + lineStr;
+		    } else {
+		        if (move.getStrength().isForcedMate()) {
+		            feedback[idx-1] = "-"+move.getStrength() + " | " + lineStr;
+		        } else {
+		            feedback[idx-1] = move.getStrength().getScore()*-1 + " | " + lineStr;
+		        }
+		    }
 		});
+
 
 		// get best move
 		String bestMove = theBoard.parseMove(analysis.getBestMove().getLan());
-		feedback[3] = "<html>The best move was " + bestMove + "<br>"+theBoard.parseMove(moveGuess)+" was " + (bestMove.equals(theBoard.parseMove(moveGuess)) ? "right!" : "wrong!");
+		feedback[3] = "<html>The best move was " + bestMove + "<br>"+theBoard.parseMove(moveGuess)+" was " 
+		+ (bestMove.equals(theBoard.parseMove(moveGuess)) ? "right!" : "wrong!");
 		
 		// get eval for top move
 		double correctEval = analysis.getBestMove().getStrength().getScore(); // assumes eval isn't mate-in-x
-    	feedback[4] = "<html>The correct eval was " + correctEval + "<br>"+eval+" was " + (eval == correctEval ? "right!" : "off by "+Double.parseDouble(df.format(eval-correctEval))) + "<html>";
+    	feedback[4] = "<html>The correct eval was " + correctEval + "<br>"+eval+" was " 
+		+ (eval == correctEval ? "right!" : "off by "+Double.parseDouble(df.format(eval-correctEval))) + "<html>";
     	
     	// get explanation from database
     	feedback[5] = (String) getPositions().get(activeId-1)[2];
 		
-    	updatePosition(activeId); // update 'attempted' in database
+    	updatePosition(activeId); // mark position as 'attempted' in database
     	
 		return feedback;
 	}
@@ -230,8 +243,6 @@ public class GuessTheEval {
           
           Object[] position = {id, FEN, explanation, attempted};
           positions.add(position);
-         
-//          System.out.println("id: " + id + ", FEN: " + FEN + ", explanation: " + explanation + ", attempted: " + attempted);
         }
 		
         return positions;

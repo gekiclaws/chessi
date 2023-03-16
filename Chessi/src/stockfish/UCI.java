@@ -58,30 +58,6 @@ public class UCI {
     public UCI() {
         this(DEFAULT_TIMEOUT_VALUE);
     }
-    
-//    public static void main(String[] args) {
-//    	var uci = new UCI();
-//    	uci.startStockfish();
-//    	uci.setOption("MultiPV", "10");
-//
-//    	uci.uciNewGame();
-//    	uci.positionFen("r1bqkb1r/2pp1ppp/p1n2n2/1p2p3/4P3/1B3N2/PPPP1PPP/RNBQK2R w KQkq - 2 6");
-//    	UCIResponse<Analysis> response = uci.analysis(18);
-//    	var analysis = response.getResultOrThrow();
-//
-//    	// Best move
-//    	System.out.println("Best move: " + analysis.getBestMove());
-//    	System.out.println("Is Draw: " + analysis.isDraw());
-//    	System.out.println("Is Mate: " + analysis.isMate());
-//
-//    	// Possible best moves
-//    	var moves = analysis.getAllMoves();
-//    	moves.forEach((idx, move) -> {
-//    	    System.out.println("\t" + move);
-//    	});
-//
-//    	uci.close();
-//    }
 
     public void startStockfish() {
         start(STOCKFISH);

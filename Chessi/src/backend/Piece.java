@@ -10,6 +10,7 @@ public class Piece {
 	protected int moves;
 	protected boolean lastMoved;
 	
+	// Constructors
 	public Piece(String color, int x, int y) {
 		this.setColor(color);
 		this.position = new Square(x,y);
@@ -19,23 +20,28 @@ public class Piece {
 		this.lastMoved = false;
 	}
 	
-	public boolean isLastMoved() {
-		return lastMoved;
-	}
-
-	public void setLastMoved(boolean lastMoved) {
-		this.lastMoved = lastMoved;
-	}
-
 	public Piece(String color, int x, int y, int moves) {
-		this(color, x, y);
-		this.moves = moves;
+		this(color, x, y); // calls above constructor to set attributes
+		this.moves = moves; // then updates the moves attribute with the input value
 	}
+	
+	// Updates position of piece
+		public void setPosition(Square position) {
+			this.position = position;
+			this.x = position.getX();
+			this.y = position.getY();
+		}
 
+	// Checks if a square is valid given a Piece[][] board
 	public boolean checkValidSquare(Piece[][] board, Square s) {
 		return true;
 	}
 	
+	public boolean isLastMoved() {
+		return lastMoved;
+	}
+	
+	// Get a LinkedList of all valid squares a piece can move to
 	public LinkedList<Square> getValidSquares(Piece[][] board) {
 		LinkedList<Square> validSquares = new LinkedList<>();
 
@@ -49,15 +55,14 @@ public class Piece {
 
         return validSquares;
 	}
-
+	
+		
 	public Square getPosition() {
 		return position;
 	}
 
-	public void setPosition(Square position) {
-		this.position = position;
-		this.x = position.getX();
-		this.y = position.getY();
+	public void setLastMoved(boolean lastMoved) {
+		this.lastMoved = lastMoved;
 	}
 
 	public String getColor() {
@@ -95,6 +100,6 @@ public class Piece {
 	public void addMove() {
 		this.moves += 1;
 	}
-	
-	
+
 }
+

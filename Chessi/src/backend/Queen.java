@@ -12,17 +12,13 @@ public class Queen extends Piece {
 	public boolean checkValidSquare(Piece[][] board, Square s) {
 	    int dRow = s.getY() - position.getY();
 	    int dCol = s.getX() - position.getX();
-	    
-	    
 
 	    // Ensure the move is in a diagonal, horizontal, or vertical direction
 	    if (dRow != 0 && dCol != 0 && Math.abs(dRow) != Math.abs(dCol)) {
 	        return false;
 	    }
-	    
-	    
 
-	 // Check if there is a clear path to the destination
+	    // Check if there is a clear path to the destination
 	    if (dRow == 0) {
 	        // Moving horizontally
 	        int startCol = Math.min(position.getX(), s.getX()) + 1;
@@ -70,3 +66,4 @@ public class Queen extends Piece {
 		return (color + " queen at "+position.getName()+" "+moves);
 	}
 }
+

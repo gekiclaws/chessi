@@ -24,6 +24,5 @@ public class Move {
 	public String toString() {
 		return startSquare.getName()+" to "+endSquare.getName();
 	}
-	
-	
 }
+

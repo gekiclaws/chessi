@@ -17,7 +17,8 @@ public class Square {
 	public Square(String name) {
 	    this.name = name;
 	    this.x = name.charAt(0) - 'a';  // subtract the ASCII value of 'a' to get the file number (0 to 7)
-	    this.y = 8 - (name.charAt(1) - '0');  // subtract the ASCII value of '0' to get the rank number (1 to 8), then subtract from 8 to convert to the Cartesian coordinate system
+	    this.y = 8 - (name.charAt(1) - '0');  /* subtract the ASCII value of '0' to get the rank number (1 to 8), 
+	    then subtract from 8 to convert to the Cartesian coordinate system */
 	}
 
 	public String getName() {

@@ -23,12 +23,15 @@ import backend.Rook;
 import backend.Square;
 
 public class Interface {
-    JPanel cards; //a panel that uses CardLayout
+    // Declare instance variables
     private static JFrame frame;
     private Chessi app;
+    
+    private JPanel cards; // a panel that uses CardLayout
+    
     private Square currentSquare;
     private Color currentColor;
-    private Map<String, JTextField> squares = new HashMap<>();
+    private boolean analysisMode;
     private boolean buttonClicked;
     private boolean pauseBoard_GTE;
     private boolean pauseBoard_analysis;
@@ -38,13 +41,61 @@ public class Interface {
     private JLabel lblLine2_analysis;
     private JLabel lblLine3_analysis;
     
-    private boolean analysisMode;
+    private Map<String, JTextField> squares = new HashMap<>();
+    
+    public static void main(String[] args) {
+        /* Use an appropriate Look and Feel */
+        try {
+            // Set the look and feel for the GUI
+            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+        } catch (UnsupportedLookAndFeelException ex) {
+            ex.printStackTrace();
+        } catch (IllegalAccessException ex) { 
+            ex.printStackTrace();
+        } catch (InstantiationException ex) {
+            ex.printStackTrace();
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+        }
+        /* Turn off metal's use of bold fonts */
+        UIManager.put("swing.boldMetal", Boolean.FALSE);
+        
+        // Schedule a job for the event dispatch thread:
+        // creating and showing this application's GUI.
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    // Create and show the GUI
+                    createAndShowGUI();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+    
+    private static void createAndShowGUI() throws SQLException {
+        // Create and set up the window
+        frame = new JFrame("Chessi");
+        frame.setSize(750, 500);
+        frame.setResizable(false);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        // Create and set up the content pane
+        Interface demo = new Interface();
+        demo.addComponentToPane(frame.getContentPane());
+        
+        // Display the window
+        frame.setVisible(true);
+    }
     
     public void addComponentToPane(Container pane) throws SQLException{
-    	app = new Chessi();
-    	buttonClicked = false;
-    	pauseBoard_analysis = true;
-    	
+        // Create a new Chessi instance
+        app = new Chessi();
+        
+        buttonClicked = false;
+        pauseBoard_analysis = true;
+        
         // Create the panel that contains the windows
         cards = new JPanel(new CardLayout());
         pane.add(cards, BorderLayout.CENTER);
@@ -55,19 +106,21 @@ public class Interface {
         mainWindow.setLayout(null);
         
         // Game window
-        
         JPanel gameWindow = new JPanel();
         cards.add(gameWindow, "gameWindow");
         GridBagLayout gbl_gameWindow = new GridBagLayout();
-        gbl_gameWindow.columnWidths = new int[]{450, 300, 0};
+        
+        // Use GridBagLayout to split window into 2 parts, one for chessboard and one for sidebar
+        gbl_gameWindow.columnWidths = new int[]{450, 300, 0}; 
         gbl_gameWindow.rowHeights = new int[]{470, 0};
         gbl_gameWindow.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
         gbl_gameWindow.rowWeights = new double[]{1.0, Double.MIN_VALUE};
         gameWindow.setLayout(gbl_gameWindow); 
         
         // Draw the chess board
-        
         JPanel chessboard = new JPanel();
+        
+        // Set the layout constraints for the chessboard panel
         GridBagConstraints gbc_chessboard = new GridBagConstraints();
         gbc_chessboard.insets = new Insets(0, 0, 0, 0); 
         gbc_chessboard.fill = GridBagConstraints.BOTH; 
@@ -75,17 +128,21 @@ public class Interface {
         gbc_chessboard.gridy = 0; 
         gameWindow.add(chessboard, gbc_chessboard);
         
+        // Create a GridBagLayout for the chessboard panel
         GridBagLayout gbl_chessboard = new GridBagLayout();
         gbl_chessboard.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
         gbl_chessboard.rowHeights = new int[]{63, 63, 62, 62, 62, 62, 63, 63, 0};
         gbl_chessboard.columnWeights = new double[]{0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, Double.MIN_VALUE};
         gbl_chessboard.rowWeights = new double[]{0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, Double.MIN_VALUE};
+        
+        // Set the GridBagLayout for the chessboard panel
         chessboard.setLayout(gbl_chessboard); 
         
+        // Create a FocusListener for the chessboard panel
         FocusListener myFocusListener = new FocusListener() {
         	public void focusGained(FocusEvent e) {
+        		// only allow board movement if board for section is not paused
         		if (!buttonClicked) {
-        			// only allow board movement if board for section is not paused
         			if (!pauseBoard_GTE && !analysisMode || !pauseBoard_analysis && analysisMode) {
         				Component component = e.getComponent();
                         if (component instanceof JTextField) {
@@ -104,6 +161,7 @@ public class Interface {
             }
     	};
     	
+    	// Create a KeyListener for the copy and paste operations
     	KeyListener copyPasteKeyListener = new KeyAdapter() {
     	    public void keyPressed(KeyEvent e) {
     	        if (e.isControlDown() || e.isMetaDown()) { // On Mac, use the Command key
@@ -121,20 +179,24 @@ public class Interface {
     	    }
     	};
     	
+    	// Each square on the chessboard (a1-h8) will be represented by a JTextField. 
     	JTextField a1 = new JTextField();
-        a1.setBackground(new Color(210, 180, 140));
-        a1.setEditable(false);
+        a1.setBackground(new Color(210, 180, 140)); // Set color of the square
+        a1.setEditable(false); // Prevent user from editing the square
         a1.setFont(new Font("Dialog", Font.BOLD, 40));
         a1.setBorder(javax.swing.BorderFactory.createEmptyBorder());
-        a1.setText("♖");
+        a1.setText("♖"); // Put the respective piece on the square
         a1.setHorizontalAlignment(JTextField.CENTER);
         
+        // Create a GridBagConstraints object "gbc_a1" and set its fill, insets, grid x and y coordinates.
         GridBagConstraints gbc_a1 = new GridBagConstraints();
         gbc_a1.fill = GridBagConstraints.BOTH;
         gbc_a1.insets = new Insets(0, 0, 0, 0);
         gbc_a1.gridx = 0;
         gbc_a1.gridy = 7;
+        // Then add "a1" to the "chessboard" object with the specified constraints.
         chessboard.add(a1, gbc_a1);
+        // And add a FocusListener to "a1" to see if the user has clicked on the square.
         a1.addFocusListener(myFocusListener);
         
         JTextField a3 = new JTextField();
@@ -1081,7 +1143,8 @@ public class Interface {
         chessboard.add(g8, gbc_g8);
         g8.addFocusListener(myFocusListener);
         
-        // Use string to reference squares
+        /* Adding the JTextFields representing the squares to the HashMap,
+        so I can use the square names (which are type String) to reference the squares */
         squares.put("a1", a1);
         squares.put("a2", a2);
         squares.put("a3", a3);
@@ -1163,7 +1226,7 @@ public class Interface {
         gameWindow.add(sidebarPane, gbc_sidebarPane);
         sidebarPane.setPreferredSize(gameWindow.getSize());
         
-     // Using a panel/layered pane approach to ensure that the back button is on top of everything and always visible
+        // Using a panel/layered pane approach to ensure that the back button is on top of everything and always visible
         JPanel backPanel = new JPanel();
         sidebarPane.setLayer(backPanel, 1);
         backPanel.setSize(300, 472);
@@ -1173,9 +1236,6 @@ public class Interface {
         backPanel.setLayout(null);
         
         // Create back button
-//        Icon icon = new ImageIcon(new ImageIcon("/Users/gekiclaws/Documents/GitHub/guess-the-eval/Chessi/src/resources/back.png").getImage().getScaledInstance(50, 50, java.awt.Image.SCALE_SMOOTH));    
-        
-     // Create back button
         Icon icon = new ImageIcon(new ImageIcon("/Users/gekiclaws/Documents/GitHub/guess-the-eval/Chessi/src/resources/back.png").getImage().getScaledInstance(50, 50, java.awt.Image.SCALE_SMOOTH));
         JButton backBtn = new JButton(icon);
         backBtn.setBorderPainted(false);
@@ -1307,23 +1367,30 @@ public class Interface {
         lblExplanation.setBounds(30, 290, 240, 103);
         result.add(lblExplanation, "lblExplanation");
         
+        // Add an ActionListener to the undo button
         btnUndo.addActionListener(new ActionListener() {
+        	//When the undo button is clicked, the actionPerformed method will be called
         	public void actionPerformed(ActionEvent e) {
+        		//Check if there is a previous move
         		if(app.getGTE().getMoveGuess() != null) {
+        			//If there is, reset the current move
         			app.getGTE().setMoveGuess(null);
         			
+        			//Try to reset the game board, catching any SQLExceptions that may occur
         			try {
-						app.getGTE().resetBoard();
-					} catch (SQLException e1) {
-						e1.printStackTrace();
-					}
-                    
-                    Piece[][] board = app.getGTE().getTheBoard().getBoard();
-                    updateGUIBoard(board);
+        				app.getGTE().resetBoard();
+        			} catch (SQLException e1) {
+        				e1.printStackTrace();
+        			}
+        			
+        			//Update the GUI board with the new board state
+        			Piece[][] board = app.getGTE().getTheBoard().getBoard();
+        			updateGUIBoard(board);
         		}
         	}
         });
         
+        // Add an ActionListener to the submit button
         btnSubmit.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		double eval = 0;
@@ -1359,6 +1426,7 @@ public class Interface {
 							e1.printStackTrace();
 						}
             			
+        				// update text
             			lblLine1.setText(feedback[0]);
             			lblLine2.setText(feedback[1]);
             			lblLine3.setText(feedback[2]);
@@ -1369,8 +1437,6 @@ public class Interface {
             			CardLayout cl = (CardLayout)(gte.getLayout());
                         cl.show(gte, "result");
                         
-                        System.out.println("bug");
-                        
                         // reset UI and GTE stored data
                         updateGUIBoard(app.getGTE().getTheBoard().getBoard());
         				evalTextField.setText("");
@@ -1380,38 +1446,52 @@ public class Interface {
         	}
         });
         
+        // Adds an action listener to the continue button
         btnContinue.addActionListener(new ActionListener() {
+
         	public void actionPerformed(ActionEvent e) {
+        		// "loaded" variable refers to whether a new position has been loaded in the GTE program
         		boolean loaded = false;
+        		
+        		// Calls the updatePositionAcquired method of the GTE object associated with the app object
         		app.getGTE().updatePositionAcquired();
         		
         		buttonClicked = true;
         		pauseBoard_GTE = false;
         		
+        		// Get the layout manager of the GTE object associated with the app object and casts it to a CardLayout object
         		CardLayout cl = (CardLayout)(gte.getLayout());
-                cl.show(gte, "main");
-                
-                try {
-					loaded = app.getGTE().loadNewPosition();
-				} catch (SQLException e1) {
-					System.out.println(e1);
-				}
-                
-                if (loaded) {
-                	Piece[][] board = app.getGTE().getTheBoard().getBoard();
-                    updateGUIBoard(board);
-                    lblToPlay.setText((app.getGTE().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
-                } else {
-                	cl = (CardLayout)(cards.getLayout());
-                    cl.show(cards, "mainWindow");
-                    JOptionPane.showMessageDialog(null, "You've analyzed all the available positions! More positions to come.", "No positions left", JOptionPane.INFORMATION_MESSAGE);
-                }
-                
+        		
+        		// Show the "main" panel of the GTE object associated with the app object
+        		cl.show(gte, "main");
+        		
+        		try {
+        			// Call the loadNewPosition method of the GTE object associated with the app object and sets loaded to the result
+        			loaded = app.getGTE().loadNewPosition();
+        		} catch (SQLException e1) {
+        			// Prints the stack trace of the SQLException to the standard error stream
+        			e1.printStackTrace();
+        		}
+        		
+        		if (loaded) {
+        			// If loaded is true, gets the board array of the TheBoard object associated with the GTE object of the app object
+        			// and updates the GUI board using it, sets the text of the lblToPlay JLabel to the color of the side to move
+        			Piece[][] board = app.getGTE().getTheBoard().getBoard();
+        			updateGUIBoard(board);
+        			lblToPlay.setText((app.getGTE().getTheBoard().getColor() == 'w' ? "White" : "Black") + " to play");
+        		} else {
+        			// If loaded is false, gets the layout manager of the cards object associated with the app object and casts it to 
+        			// a CardLayout object, shows the "mainWindow" panel of the cards object associated with the app object, and 
+        			// displays a message dialog with the text "You've analyzed all the available positions! More positions to come." and the title "No positions left"
+        			cl = (CardLayout)(cards.getLayout());
+        			cl.show(cards, "mainWindow");
+        			JOptionPane.showMessageDialog(null, "You've analyzed all the available positions! More positions to come.", "No positions left", JOptionPane.INFORMATION_MESSAGE);
+        		}
         	}
         });
+
         
-     // analysis sidebar
-       
+        // analysis sidebar
         JPanel analysis = new JPanel();
         sidebar.add(analysis, "analysis");
         analysis.setLayout(new CardLayout(0, 0));
@@ -1440,7 +1520,6 @@ public class Interface {
         lblFEN.setFont(new Font("Chalkboard", Font.ITALIC, 18));
         lblFEN.setBounds(30, 48, 240, 46);
         setup.add(lblFEN);
-        
         
         JPanel analysisPage = new JPanel();
         analysis.add(analysisPage, "analysisPage");
@@ -1510,28 +1589,30 @@ public class Interface {
         	public void actionPerformed(ActionEvent e) {
         		buttonClicked = true;
                 String FEN = FENTextField.getText();
-//                FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-//                FEN = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
-//                FEN = "5b1r/ppk2ppp/2p1p1b1/4P3/Q3P3/2N5/PP3qPP/3R1B1K w - - 0 20";
-//                FEN = "8/8/8/2k5/8/8/3q4/1K6 w - - 0 1";
-                FEN = "r1bqkbnr/pPppnppp/p7/8/8/8/P1PPPPPP/RNBQKBNR w KQkq - 0 1";
-//                FEN = "r1bqkbnr/pp1ppppp/2n5/2p5/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1";
                 
+                // Check if the provided FEN notation is valid
                 if (app.getAnalysis().checkFEN(FEN)) {
-                	app.getAnalysis().getTheBoard().updateBoard(FEN);
-                	Piece[][] board = app.getAnalysis().getTheBoard().getBoard();
+                    // If FEN is valid, update the board with the FEN and get the current state of the board
+                    app.getAnalysis().getTheBoard().updateBoard(FEN);
+                    Piece[][] board = app.getAnalysis().getTheBoard().getBoard();
+                    
+                    // Update the GUI board with the new state of the board
                     updateGUIBoard(board);
                     
+                    // Show the analysis page in the application using CardLayout
                     CardLayout cl = (CardLayout)(analysis.getLayout());
                     cl.show(analysis, "analysisPage");
                     
+                    // Set the pause flag for the board analysis to false
                     pauseBoard_analysis = false;
                     
+                    // Update the lines on the board
                     updateLines();
-                    
                 } else {
-                	JOptionPane.showMessageDialog(null, "Invalid FEN, please try again", "Alert", JOptionPane.WARNING_MESSAGE);
+                    // If the FEN is invalid, display a warning message using JOptionPane
+                    JOptionPane.showMessageDialog(null, "Invalid FEN, please try again", "Alert", JOptionPane.WARNING_MESSAGE);
                 }
+
         	}
         });
         
@@ -1588,7 +1669,7 @@ public class Interface {
                 try {
 					loaded = app.getGTE().loadNewPosition();
 				} catch (SQLException e1) {
-					System.out.println(e1);
+					e1.printStackTrace();
 				}
         		
                 if (loaded) {
@@ -1609,122 +1690,145 @@ public class Interface {
                 }
         	}
         });
-        
         gteButton.setBounds(395, 104, 300, 250);
         mainWindow.add(gteButton);
-        
     	
     }
-  
     
     private void update(JTextField textField, Square s) {
+    	
     	Piece[][] board = new Piece[8][8];
     	
+    	// get the active board from the current feature that is running (analysis / GTE)
     	if (analysisMode) {
     		board = app.getAnalysis().getTheBoard().copyBoard();
     	} else {
     		board = app.getGTE().getTheBoard().copyBoard();
     	}
     	
+    	// Check if the current square is empty and the selected square is not empty
     	if (currentSquare == null && board[s.getY()][s.getX()] != null) {
-    		currentColor = textField.getBackground();
-        	textField.setBackground(new Color(0, 255, 128));
-        	currentSquare = s;
-    	} else if (currentSquare != null) {
-    		boolean legal = false;
-    		Move move = new Move(currentSquare, s);
-    		String moveName = "";
-    		char toMove = 'w';
-    		int moveNo = 1;
+    	    // Change the background color of the selected square to indicate that it's the current square
+    	    currentColor = textField.getBackground();
+    	    textField.setBackground(new Color(0, 255, 128));
+    	    currentSquare = s;
+    	} 
+    	
+    	// If the current square is not empty
+    	else if (currentSquare != null) {
+    	    boolean legal = false;
+    	    Move move = new Move(currentSquare, s);
+    	    String moveName = "";
+    	    char toMove = 'w';
+    	    int moveNo = 1;
+    	    
+    	    // Check if the program is in analysis mode
+    	    if (analysisMode) {
+    	        // Check if the current square has the same color as the program's board color
+    	        if(app.getAnalysis().getTheBoard().getSquareColor(currentSquare).charAt(0) == app.getAnalysis().getTheBoard().getColor()) {
+    	            // Get the name, color, and move number of the move
+    	            moveName = app.getAnalysis().getTheBoard().parseMove(move);
+    	            toMove = app.getAnalysis().getTheBoard().getColor();
+    	            moveNo = app.getAnalysis().getTheBoard().getMoveNo();
+    	            
+    	            // Check if the move is legal and make it if it is
+    	            legal = app.getAnalysis().getTheBoard().makeMove(currentSquare, s);
+    	        } 
+    	        // If the current square does not have the same color as the program's board color, show an alert
+    	        else {
+    	            JOptionPane.showMessageDialog(null, "Please play a move with the correct color", "Alert", JOptionPane.WARNING_MESSAGE);
+    	        }
+    	    } 
+    	    // If the program is not in analysis mode
+    	    else {
+    	        // Check if there is a move guess and show an alert if there is
+    	        if(app.getGTE().getMoveGuess() != null) {
+    	            JOptionPane.showMessageDialog(null, "Please undo your move before making a new move", "Alert", JOptionPane.WARNING_MESSAGE);
+    	        } 
+    	        // If there is no move guess
+    	        else {
+    	            // Check if the current square has the same color as the program's board color
+    	            if(app.getGTE().getTheBoard().getSquareColor(currentSquare).charAt(0) == app.getGTE().getTheBoard().getColor()) {
+    	                // Check if the move is legal and make it if it is
+    	                legal = app.getGTE().getTheBoard().makeMove(currentSquare, s);
+    	            } 
+    	            // If the current square does not have the same color as the program's board color, show an alert
+    	            else {
+    	                JOptionPane.showMessageDialog(null, "Please play a move with the correct color", "Alert", JOptionPane.WARNING_MESSAGE);
+    	            }
+    	        }
+    	    }
     		
-    		if (analysisMode) {
-    			if(app.getAnalysis().getTheBoard().getSquareColor(currentSquare).charAt(0) == app.getAnalysis().getTheBoard().getColor()) {
-    				moveName = app.getAnalysis().getTheBoard().parseMove(move);
-					toMove = app.getAnalysis().getTheBoard().getColor();
-		    		moveNo = app.getAnalysis().getTheBoard().getMoveNo();
-		    		
-    				legal = app.getAnalysis().getTheBoard().makeMove(currentSquare, s);
-				} else {
-					JOptionPane.showMessageDialog(null, "Please play a move with the correct color", "Alert", JOptionPane.WARNING_MESSAGE);
-				}
-    		} else {
-    			if(app.getGTE().getMoveGuess() != null) {
-    				JOptionPane.showMessageDialog(null, "Please undo your move before making a new move", "Alert", JOptionPane.WARNING_MESSAGE);
-    			} else {
-    				if(app.getGTE().getTheBoard().getSquareColor(currentSquare).charAt(0) == app.getGTE().getTheBoard().getColor()) {
-    					legal = app.getGTE().getTheBoard().makeMove(currentSquare, s);
-    				} else {
-    					JOptionPane.showMessageDialog(null, "Please play a move with the correct color", "Alert", JOptionPane.WARNING_MESSAGE);
-    				}
-    			}
-    		}
-    		
-    		if (legal) { // if user makes a legal move
+    		// if user makes a legal move
+    		if (legal) { 
     			squares.get(s.getName()).setText(squares.get(currentSquare.getName()).getText());
     			squares.get(currentSquare.getName()).setText("");
     			
-        		squares.get(currentSquare.getName()).setBackground(currentColor);
-        		
-        		app.getAnalysis().getTheBoard().showBoard();
-    			
-    			if (board[currentSquare.getY()][currentSquare.getX()] instanceof Pawn) {				
-    				Pawn pawn = (Pawn) board[currentSquare.getY()][currentSquare.getX()];
-    				
-    				// remove extra pawn if en passant
-    				if (board[s.getY()][s.getX()] == null && pawn.canBeCapturedEnPassant(board, pawn.getColor(), currentSquare, s)) {
-    					System.out.println(new Square(s.getX(), currentSquare.getY()).getName());
-    					squares.get(new Square(s.getX(), currentSquare.getY()).getName()).setText("");
-    				}
-    				
-    				// promote pawn if it reaches the end
-    				if (pawn.checkForPromotion(s) && !pawn.isPromoted()) {
-    					if (analysisMode) {
-    			    		board = app.getAnalysis().getTheBoard().copyBoard();
-    			    	} else {
-    			    		board = app.getGTE().getTheBoard().copyBoard();
-    			    	}
-    					pawn = (Pawn) board[s.getY()][s.getX()];
-    					String type = pawn.getPromotedTo().getClass().getSimpleName();
-    					switch (type) {
-	    				    case "Rook":
-	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♖" : "♜");
-	    				        moveName = moveName.substring(0, moveName.length()-1)+"R";
-	    				        break;
-	    				    case "Knight":
-	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♘" : "♞");
-	    				        moveName = moveName.substring(0, moveName.length()-1)+"N";
-	    				        break;
-	    				    case "Bishop":
-	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♗" : "♝");
-	    				        moveName = moveName.substring(0, moveName.length()-1)+"B";
-	    				        break;
-	    				    case "Queen":
-	    				        squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♕" : "♛");
-	    				        break;
-	    				}
-		          				
-            	      }
-    					
-    	            }
-    			
-    			
-    			// move rook if castling
+    			// Set background color of the new square to the current color
+    			squares.get(currentSquare.getName()).setBackground(currentColor);
+
+    			// Show the current board state
+    			app.getAnalysis().getTheBoard().showBoard();
+
+    			if (board[currentSquare.getY()][currentSquare.getX()] instanceof Pawn) {
+    			    Pawn pawn = (Pawn) board[currentSquare.getY()][currentSquare.getX()];
+
+    			    // Remove extra pawn if en passant
+    			    if (board[s.getY()][s.getX()] == null && pawn.canBeCapturedEnPassant(board, pawn.getColor(), currentSquare, s)) {
+    			        System.out.println(new Square(s.getX(), currentSquare.getY()).getName());
+    			        squares.get(new Square(s.getX(), currentSquare.getY()).getName()).setText("");
+    			    }
+
+    			    // Promote pawn if it reaches the end
+    			    if (pawn.checkForPromotion(s) && !pawn.isPromoted()) {
+    			        // Copy the board state
+    			        if (analysisMode) {
+    			            board = app.getAnalysis().getTheBoard().copyBoard();
+    			        } else {
+    			            board = app.getGTE().getTheBoard().copyBoard();
+    			        }
+
+    			        // Promote the pawn and update the move name accordingly
+    			        pawn = (Pawn) board[s.getY()][s.getX()];
+    			        String type = pawn.getPromotedTo().getClass().getSimpleName();
+    			        switch (type) {
+    			            case "Rook":
+    			                squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♖" : "♜");
+    			                moveName = moveName.substring(0, moveName.length() - 1) + "R";
+    			                break;
+    			            case "Knight":
+    			                squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♘" : "♞");
+    			                moveName = moveName.substring(0, moveName.length() - 1) + "N";
+    			                break;
+    			            case "Bishop":
+    			                squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♗" : "♝");
+    			                moveName = moveName.substring(0, moveName.length() - 1) + "B";
+    			                break;
+    			            case "Queen":
+    			                squares.get(s.getName()).setText(pawn.getColor().equals("white") ? "♕" : "♛");
+    			                break;
+    			        }
+    			    }
+    			}
+
+    			// Move rook if castling
     			if (board[currentSquare.getY()][currentSquare.getX()] instanceof King) {
-    			    if(Math.abs(s.getX() - currentSquare.getX()) == 2) {
-	    				if (s.getX() > currentSquare.getX()) {
-	    					System.out.println("kingside");
-				            // Kingside castle
-				            squares.get(new Square(5, s.getY()).getName()).setText(squares.get(new Square(7, s.getY()).getName()).getText());
-				            squares.get(new Square(7, s.getY()).getName()).setText("");
-				        } else {
-				        	System.out.println("queenside");
-				            // Queenside castle
-				            squares.get(new Square(3, s.getY()).getName()).setText(squares.get(new Square(0, s.getY()).getName()).getText());
-				            squares.get(new Square(0, s.getY()).getName()).setText("");
-				        }
+    			    if (Math.abs(s.getX() - currentSquare.getX()) == 2) {
+    			        if (s.getX() > currentSquare.getX()) {
+    			            System.out.println("kingside");
+    			            // Kingside castle
+    			            squares.get(new Square(5, s.getY()).getName()).setText(squares.get(new Square(7, s.getY()).getName()).getText());
+    			            squares.get(new Square(7, s.getY()).getName()).setText("");
+    			        } else {
+    			            System.out.println("queenside");
+    			            // Queenside castle
+    			            squares.get(new Square(3, s.getY()).getName()).setText(squares.get(new Square(0, s.getY()).getName()).getText());
+    			            squares.get(new Square(0, s.getY()).getName()).setText("");
+    			        }
     			    }
     			}
     			
+    			// Update the board state and move history
     			if (analysisMode) {
     				app.getAnalysis().makeMove(move, moveName, toMove, moveNo);
     				lblTimeline.setText(app.getAnalysis().getTimeline());
@@ -1737,16 +1841,23 @@ public class Interface {
     			currentColor = null;
     			
     		} else {
-    			squares.get(currentSquare.getName()).setBackground(currentColor); // clear color of current square if user clicks on an empty square or new piece
-    			
-    			if (board[s.getY()][s.getX()] != null) { // if user clicks on new piece
-    				currentColor = textField.getBackground();
-    	        	textField.setBackground(new Color(0, 255, 128));
-    				currentSquare = s;
-            	} else { // if user clicks on invalid empty square
-            		currentSquare = null;
-            		currentColor = null;
-            	}
+    			/* Reset the background color of the previous square
+    			   if the user clicks on an empty square or a new piece */
+    			squares.get(currentSquare.getName()).setBackground(currentColor);
+
+    			// Check if the user clicked on a new piece
+    			if (board[s.getY()][s.getX()] != null) {
+	    			// Set the current color to the background color of square
+	    			currentColor = textField.getBackground();
+	    			// Change the background color of the square to green
+	    			textField.setBackground(new Color(0, 255, 128));
+	    			// Update the current square to the newly clicked square
+	    			currentSquare = s;
+    			} else {
+	    			// If the user clicked on an invalid empty square, set the current square and color to null
+	    			currentSquare = null;
+	    			currentColor = null;
+    			}
     		}
     	}
     }
@@ -1756,6 +1867,7 @@ public class Interface {
         	for (int k = 0; k<board[0].length; k++) {
         		String type = "";
         		try {
+        			// getting the class name of the current piece to determine what type of piece it is
         			type = board[i][k].getClass().getSimpleName();
         		} catch (NullPointerException ne) {}
         		
@@ -1780,7 +1892,7 @@ public class Interface {
         			case "King":
         			    squares.get(square).setText(board[i][k].getColor().equals("white") ? "♔" : "♚");
         			    break;
-        			default:
+        			default: 
         				squares.get(square).setText("");
         		}
         	}
@@ -1794,50 +1906,4 @@ public class Interface {
     	lblLine3_analysis.setText(lines[2]);
     }
     
-    private static void createAndShowGUI() throws SQLException {
-        //Create and set up the window.
-        frame = new JFrame("Chessi");
-        frame.setSize(750, 500);
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-        //Create and set up the content pane.
-        Interface demo = new Interface();
-        demo.addComponentToPane(frame.getContentPane());
-        
-        //Display the window.
-//        frame.pack();
-        frame.setVisible(true);
-    } 
-    
-    public static void main(String[] args) {
-        /* Use an appropriate Look and Feel */
-        try {
-        	//UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-        } catch (UnsupportedLookAndFeelException ex) {
-            ex.printStackTrace();
-        } catch (IllegalAccessException ex) { 
-        	ex.printStackTrace();
-        } catch (InstantiationException ex) {
-            ex.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-        }
-        /* Turn off metal's use of bold fonts */
-        UIManager.put("swing.boldMetal", Boolean.FALSE);
-        
-        //Schedule a job for the event dispatch thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                try {
-					createAndShowGUI();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-            }
-        });
-        
-    }
 }

@@ -1,7 +1,5 @@
 package backend;
 
-import java.util.LinkedList;
-
 public class Knight extends Piece {
 	public Knight(String color, int x, int y) {
 		super(color, x, y);
@@ -12,8 +10,6 @@ public class Knight extends Piece {
 	}
 	
 	public boolean checkValidSquare(Piece[][] board, Square s) {
-		
-		
         int rowDiff = Math.abs(s.getY() - y);
         int colDiff = Math.abs(s.getX() - x);
 
@@ -36,3 +32,4 @@ public class Knight extends Piece {
 		return (color + " knight at "+position.getName()+" "+moves);
 	}
 }
+

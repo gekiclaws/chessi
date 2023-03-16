@@ -51,3 +51,4 @@ public class Rook extends Piece {
 		return (color + " rook at "+position.getName()+" "+moves);
 	}
 }
+

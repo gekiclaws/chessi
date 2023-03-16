@@ -2,7 +2,7 @@ package backend;
 
 public class Pawn extends Piece {
 	private boolean promoted;
-	private Piece promotedTo; // maybe string better
+	private Piece promotedTo;
 	
 	public Pawn(String color, int x, int y) {
 		super(color, x, y);
@@ -16,8 +16,8 @@ public class Pawn extends Piece {
 	}
 	
 	public boolean checkForPromotion(Square toSquare) {
-        if (this.getColor().equals("white") && toSquare.getY() == 0 ||
-                this.getColor().equals("black") && toSquare.getY() == 7) {
+        if (color.equals("white") && toSquare.getY() == 0 ||
+                color.equals("black") && toSquare.getY() == 7) {
             return true;
         }
         return false;
@@ -46,13 +46,13 @@ public class Pawn extends Piece {
 		    }
 		    
 		    int rowDiff = Math.abs(dy);
-		    if (moves > 0) {
+		    if (position.getY() != (color.equals("white") ? 6 : 1)) { // check if pawn on starting rank
 		        if (rowDiff != 1) {
-		            return false; // pawns can move 1 square if they have moved
+		            return false; // pawns can only move 1 square forward if they aren't on the starting rank
 		        }
 		    } else {
 		        if (rowDiff > 2 || rowDiff < 1) {
-		            return false; // pawns can move 1 or 2 squares if they have not moved yet
+		            return false; // pawns can only move either 1 or 2 squares forward
 		        } else if (rowDiff == 2) {
 		            // check if there is a piece in between the start and end squares
 		            int midY = (position.getY() + s.getY()) / 2;
@@ -63,9 +63,10 @@ public class Pawn extends Piece {
 		    }
 		    
 		    // check if destination is on a diagonal and there is a piece to capture
-		    if (Math.abs(rowDiff) == 1) {
+		    Piece p = board[s.getY()][s.getX()];
+		    		
+		    if (rowDiff == 1) {
 		        if (Math.abs(dx) == 1) {
-		            Piece p = board[s.getY()][s.getX()];
 		            if (p == null) {
 		                // check if this is an en passant capture
 		                if (board[position.getY()][s.getX()] != null && board[position.getY()][s.getX()] instanceof Pawn && board[position.getY()][s.getX()].getColor() != color) {
@@ -87,52 +88,32 @@ public class Pawn extends Piece {
 		        }
 		    }
 		    
-		     // check if there is a piece in the destination square
-			 // if there is, it must be an opposing piece (for a capture move)
-			 // if there isn't, the destination square must be empty (for a non-capture move)
-			 if (board[s.getY()][s.getX()] == null) {
-			     if (rowDiff == 2) {
-			         if (moves > 0) {
-			             return false; // pawns cannot move 2 squares if they have already moved
-			         } else {
-			             // check if there is a piece in between the start and end squares
-			             int midY = (position.getY() + s.getY()) / 2;
-			             if (board[midY][s.getX()] != null) {
-			                 return false;
-			             }
-			         }
-			     }
-			 } else {
-			     if (Math.abs(dx) != 1) {
-			         return false;
-			     } else if (board[s.getY()][s.getX()].getColor() == color) {
-			         return false;
-			     }
-			 }
-		    
 		    return true;
 		}
 	}
 	
 	public boolean canBeCapturedEnPassant(Piece[][] board, String color, Square capturer, Square captured) {
 		int enPassantRow;
-		if (color.equals("white")) {
-		    enPassantRow = 2;
-		} else {
-		    enPassantRow = 5;
-		}
 		
-	    int dx = captured.getX() - capturer.getX();
-	    
-	    if (Math.abs(dx) == 1 && captured.getY() == enPassantRow && board[capturer.getY()][captured.getX()] instanceof Pawn
-	            && board[capturer.getY()][captured.getX()].getColor() != color
-	            && board[capturer.getY()][captured.getX()].getMoves() == 1) {
-	        return true;
-	    }
-	    return false;
+		// Check if the color of the capturing pawn is white
+		if (color.equals("white")) {
+			enPassantRow = 2; // set the en passant row to the 3rd row
+		} else {
+			enPassantRow = 5; // set the en passant row to the 6th row
+		}
+
+		// Calculate the horizontal distance between the captured and capturing pawns
+		int dx = captured.getX() - capturer.getX();
+
+		// Check if the captured pawn is on the correct row for an en passant capture
+		if (Math.abs(dx) == 1 && captured.getY() == enPassantRow && board[capturer.getY()][captured.getX()] instanceof Pawn
+			&& board[capturer.getY()][captured.getX()].getColor() != color
+			&& board[capturer.getY()][captured.getX()].getMoves() == 1) {
+			return true; // en passant capture is valid, return true
+		}
+		return false; // en passant capture is not valid, return false.
 	}
 
-	
 	public boolean isPromoted() {
 		return promoted;
 	}
