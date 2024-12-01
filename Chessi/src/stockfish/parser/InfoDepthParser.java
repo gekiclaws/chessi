@@ -5,7 +5,6 @@ import stockfish.model.Strength;
 
 import java.util.regex.Matcher;
 
-import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 public class InfoDepthParser extends AbstractParser<Move> {

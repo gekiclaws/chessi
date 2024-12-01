@@ -20,6 +20,8 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.function.Function.identity;
 import static stockfish.breaks.Break.breakOn;
 
+import java.util.Properties;
+
 /**
  * <p>This class represents a simple UCI Client implementation.</p>
  *
@@ -35,9 +37,6 @@ public class UCI {
     private static final String STOCKFISH = "stockfish";
     private static final String LC0 = "lc0";
     
-    // path to stockfish executable
-    private static final String PATH = "/usr/local/bin";
-
     private static final long DEFAULT_TIMEOUT_VALUE = 60_000l;
 
     // Processors
@@ -68,6 +67,29 @@ public class UCI {
     }
 
     public void start(String cmd) {
+        String PATH = "";
+
+        // Create a Properties object
+        Properties properties = new Properties();
+
+        try (FileInputStream fis = new FileInputStream("config.ini")) {
+            // Load the config file
+            properties.load(fis);
+
+            // Retrieve the executable path
+            PATH = properties.getProperty("executablePath");
+
+            // Print the executable path
+            if (PATH != null) {
+                System.out.println("Executable Path: " + PATH);
+            } else {
+                System.out.println("Executable path not found in config file!");
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error reading config file: " + e.getMessage());
+        }
+
         var pb = new ProcessBuilder(PATH + "/" + cmd);
         try {
             this.process = pb.start();
@@ -79,7 +101,6 @@ public class UCI {
             throw new UCIRuntimeException(e);
         }
     }
-
 
     public void close() {
         if (this.process.isAlive()) {

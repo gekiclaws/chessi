@@ -10,16 +10,11 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-import backend.Bishop;
-import backend.ChessBoard;
 import backend.Chessi;
 import backend.King;
-import backend.Knight;
 import backend.Move;
 import backend.Pawn;
 import backend.Piece;
-import backend.Queen;
-import backend.Rook;
 import backend.Square;
 
 public class Interface {
